@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_dh_app_home.DHAppNarrativeUtil</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>DHAppNarrativeUtil</name>
+        <script><![CDATA[var DHAppNarrativeUtil = Class.create();
+DHAppNarrativeUtil.prototype = {
+        NARRATIVE_TBL: 'x_snc_demohub_app_narrative',
+
+        initialize: function() {},
+        /**
+         * Fetch data needed for drop down used in the find narrative natural language (nl)
+         * by querying for unique values in the given fields passed in as args
+         * @param {Array<string>} fields - List of fields to use to populate drop down in the nl query
+         * @return {Object.<string>, Array<string>} obj - An object with string keys and array of strings 
+         * constituting the drop down list as value.
+         */
+
+        getNarrFindOptions: function(fields) {
+            var self = this;
+            var obj = {};
+
+            if (!Array.isArray(fields)) {
+                gs.error('Error: Argument must be type array. Please try again.');
+                return;
+            }
+
+            fields.forEach(function(field) {
+                try {
+                    var results = self._getNarrFields(field, self.NARRATIVE_TBL);
+                    obj[field] = results;
+                } catch (err) {
+
+                    var message = "message: {0} \n\nname: {1} \n\narguments: \n{2} \n\nstack: \n{3} ";
+                    gs.error(message, err.message, err.name, JSON.stringify(arguments, null, ' '), err.stack);
+                }
+
+            });
+			var gr = new GlideAggregate("x_snc_demohub_app_m2m_personas_narratives");
+			gr.addEncodedQuery("persona.occupation_nameISNOTEMPTY");
+			gr.groupBy("persona");
+			gr.query();
+			var persona_arr = [];
+			while(gr.next()){
+				
+				if(persona_arr.indexOf(gr.persona.occupation_name+"")== -1 ){ //to avoid duplicates
+					persona_arr.push(gr.persona.occupation_name+"");
+					
+				}
+					
+			}
+			
+	
+			obj["persona"] = persona_arr;
+            return obj;
+        },
+
+        getNarrative: function(sysId) {
+            var result = [];
+            var encodedQuery = 'sys_id=' + sysId;
+            var narObj = new x_snc_demohub_app.find().getNarrativeConfigInfo(sysId);
+
+            var gr = new GlideRecord(this.NARRATIVE_TBL);
+            gr.addEncodedQuery(encodedQuery);
+            gr.query();
+
+            while (gr.next()) {
+				var rating = new GlideRecord('x_snc_dh_telemetry_narrative_rating');
+				rating.addQuery('narrative', gr.sys_id);
+				rating.addQuery('sent', false);
+				rating.query();
+				var rating1 = 0;
+				var rating_sent = false;
+				if(rating.next()){
+					rating1 = rating.rating + '';
+					rating_sent = Boolean(rating.sent);
+				}else{
+					rating_sent = true;
+					rating1 = 0;
+				}		
+                result.push ({
+					'rating_sent': rating_sent,
+					'rating': rating1,
+                    'business_unit': gr.getDisplayValue('business_unit'),
+                    'title': gr.getDisplayValue('title'),
+                    'type': gr.getDisplayValue('type'),
+                    'workflow': gr.getDisplayValue('workflow'),
+                    'sys_id': gr.getUniqueValue(),
+                    'industry': gr.getDisplayValue('industry'),
+                    'version': gr.getDisplayValue('version'),
+                    'summary': gr.getDisplayValue('summary'),
+                    'sys_updated_on': gr.getDisplayValue('sys_updated_on'),
+                    'skill_level': gr.getDisplayValue('skill_level'),
+                    'demo_duration': gr.getDisplayValue('demo_duration'),
+                    'estimated_setup_effort': gr.getDisplayValue('estimated_setup_effort'),
+                    'estimated_setup_duration': gr.getDisplayValue('estimated_setup_duration'),
+                    'state': narObj.state,
+                    'installedConfigs': narObj.installedConfigs,
+                    'totalConfigs': narObj.totalConfigs,
+                    'install_queue': new x_snc_demohub_app.installQueue().getInstallQueueCount(),
+                    'lastLoader': new x_snc_demohub_app.find().getLastLoaderRun(gr.getValue('sys_id')),
+                    "step_1_additional_instructions": gr.getDisplayValue("step_1_additional_instructions"),
+                    "step_2_additional_instructions": gr.getDisplayValue("step_2_additional_instructions"),
+                    "step_3_additional_instructions": gr.getDisplayValue("step_3_additional_instructions"),
+                    "step_4_additional_instructions": gr.getDisplayValue("step_4_additional_instructions"),
+                    'gsf_version': gr.getDisplayValue('gsf_version'),
+                    'gsf_capability': gr.getDisplayValue('gsf_capability'),
+                    'gsf_version_url': gr.getDisplayValue('gsf_version_url'),
+                    'gsf_use_case': gr.getDisplayValue('gsf_use_case'),
+                    'gsf_imperative': gr.getDisplayValue('gsf_imperative'),
+                    'gsf_product_portfolio': gr.getDisplayValue('gsf_product_portfolio')
+                });
+        }
+
+        return result;
+    },
+
+    _getNarrFields: function(field, table) {
+        var arrayUnique = function(arr) {
+            return arr.filter(function(item, index) {
+                return arr.indexOf(item) >= index;
+            });
+        };
+
+		
+        var gr = new GlideAggregate(table);
+        if(field != "industry"){
+			var encodedQuery = field + 'ISNOTEMPTY';
+			gr.addEncodedQuery(encodedQuery);
+		}
+        var results = [];
+        gr.groupBy(field);
+        gr.query();
+
+        while (gr.next()) {
+			//add unassign option
+			if(gr.getDisplayValue(field) == "" && field == "industry"){
+				results.push("No");
+			}else
+				results.push(gr.getDisplayValue(field));
+        }
+
+        if (field == "gsf_product_portfolio" || field == "platform_features_available" || field == "gsf_imperative"|| field == "gsf_category"|| field == "gsf_capability"|| field == "gsf_use_case") {
+            results = results.join(',');
+            results = results.replace(/\s*\,\s*/g, ",");
+            results = results.split(',');
+        }
+		
+		results.sort();
+        return arrayUnique(results);
+		
+    },
+
+    type: 'DHAppNarrativeUtil'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-11-10 15:13:37</sys_created_on>
+        <sys_id>61167b87dbd864507c47be613996192e</sys_id>
+        <sys_mod_count>68</sys_mod_count>
+        <sys_name>DHAppNarrativeUtil</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sys_script_include_61167b87dbd864507c47be613996192e</sys_update_name>
+        <sys_updated_by>enrique.castro</sys_updated_by>
+        <sys_updated_on>2022-09-14 20:12:29</sys_updated_on>
+    </sys_script_include>
+</record_update>

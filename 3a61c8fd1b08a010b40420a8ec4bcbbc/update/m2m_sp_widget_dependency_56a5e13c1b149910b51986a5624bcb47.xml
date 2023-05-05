@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="m2m_sp_widget_dependency">
+    <m2m_sp_widget_dependency action="INSERT_OR_UPDATE">
+        <sp_dependency display_value="dhapp-step-modal.css">7cb4b128dbe02c507c47be6139961957</sp_dependency>
+        <sp_widget display_value="Narrative Rating Modal">9b181d341b54d910a957ea47b04bcb29</sp_widget>
+        <sys_class_name>m2m_sp_widget_dependency</sys_class_name>
+        <sys_created_by>luis.chavarria</sys_created_by>
+        <sys_created_on>2022-06-22 17:29:31</sys_created_on>
+        <sys_id>56a5e13c1b149910b51986a5624bcb47</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>dhapp-step-modal.css.Narrative Rating Modal</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>m2m_sp_widget_dependency_56a5e13c1b149910b51986a5624bcb47</sys_update_name>
+        <sys_updated_by>luis.chavarria</sys_updated_by>
+        <sys_updated_on>2022-06-22 17:29:31</sys_updated_on>
+    </m2m_sp_widget_dependency>
+</record_update>

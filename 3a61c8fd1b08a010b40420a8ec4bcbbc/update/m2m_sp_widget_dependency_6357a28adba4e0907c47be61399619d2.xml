@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="m2m_sp_widget_dependency">
+    <m2m_sp_widget_dependency action="INSERT_OR_UPDATE">
+        <sp_dependency display_value="dhapp-step-modal.css">7cb4b128dbe02c507c47be6139961957</sp_dependency>
+        <sp_widget display_value="DemoHub App Guided Step3">713684c3db9824507c47be61399619e6</sp_widget>
+        <sys_class_name>m2m_sp_widget_dependency</sys_class_name>
+        <sys_created_by>kevin.moreno</sys_created_by>
+        <sys_created_on>2020-11-19 17:11:14</sys_created_on>
+        <sys_id>6357a28adba4e0907c47be61399619d2</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>dhapp-step-modal.DemoHub App Guided Step3</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>m2m_sp_widget_dependency_6357a28adba4e0907c47be61399619d2</sys_update_name>
+        <sys_updated_by>kevin.moreno</sys_updated_by>
+        <sys_updated_on>2020-11-19 17:11:14</sys_updated_on>
+    </m2m_sp_widget_dependency>
+</record_update>

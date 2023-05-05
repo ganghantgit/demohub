@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_dh_app_home.DHAppBookmarkUtil</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>DHAppBookmarkUtil</name>
+        <script><![CDATA[var DHAppBookmarkUtil = Class.create();
+DHAppBookmarkUtil.prototype = {
+    BOOKMARK_TBL: 'sys_ui_bookmark',
+
+    initialize: function() {},
+
+    geFavBookmark: function(start, userId) {
+        var result = [];
+        var encodedQuery = 'urlSTARTSWITH/dhapp?^user=' + userId;
+
+        var gr = new GlideRecord(this.BOOKMARK_TBL);
+        gr.addEncodedQuery(encodedQuery);
+        gr.query();
+
+        while (gr.next()) {
+            result.push(
+                this._getFavBookmarkSysId(gr.getDisplayValue('url'), start)
+            );
+        }
+        return result;
+    },
+
+    _getFavBookmarkSysId: function(url, start) {
+		return url.slice(start);
+    },
+
+    type: 'DHAppBookmarkUtil'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-11-27 12:37:16</sys_created_on>
+        <sys_id>1f45baa0db78a0d00db2d602ca961966</sys_id>
+        <sys_mod_count>5</sys_mod_count>
+        <sys_name>DHAppBookmarkUtil</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sys_script_include_1f45baa0db78a0d00db2d602ca961966</sys_update_name>
+        <sys_updated_by>ansoo.chang</sys_updated_by>
+        <sys_updated_on>2020-11-30 16:06:43</sys_updated_on>
+    </sys_script_include>
+</record_update>

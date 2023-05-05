@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller=function() {
+  /* widget controller */
+  var c = this;
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.welcome {
+  background-image: url('presenter.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-origin: content-box;
+  height: 26vh;
+  background-position: center;
+  position: relative;
+}
+
+.welcome &gt; div {
+	position: absolute;
+  bottom: 65%;
+  right: -5rem;
+  font-size: 1.25rem;
+  padding: 1rem;
+}
+
+.welcome &gt; div &gt; p {
+	line-height: 65%;
+}
+
+.welcome &gt; div &gt; p:first-of-type {
+	@include font-bold;
+  font-size: 1.8rem;
+}
+
+.welcome &gt; div &gt; p:last-of-type {
+	@include font-light;
+  font-size: 1.5rem;
+}
+
+@media screen and (max-width:1250px) {
+  .welcome &gt; div {
+    top: 0;
+    left: 0;
+    font-size: 1rem;
+  }
+  
+  .welcome &gt; div &gt; p:first-of-type {
+    font-size: 1.5rem;
+  }
+  
+  .welcome &gt; div &gt; p:last-of-type {
+    font-size: 1.25rem;
+  }
+}
+
+@media screen and (max-height: 1000px) {
+  .welcome &gt; div {
+    right: 0;
+  }
+}
+
+@media screen and (min-height: 1500px) {
+  .welcome &gt; div {
+    right: -10rem;
+  }
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>demohub_app_welcome</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+}]]></link>
+        <name>DemoHub App Welcome</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {  /* populate the 'data' object */  /* e.g., data.table = $sp.getValue('table'); */})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-10-24 15:12:23</sys_created_on>
+        <sys_id>38d210b51b88a010b40420a8ec4bcb62</sys_id>
+        <sys_mod_count>195</sys_mod_count>
+        <sys_name>DemoHub App Welcome</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_widget_38d210b51b88a010b40420a8ec4bcb62</sys_update_name>
+        <sys_updated_by>ansoo.chang</sys_updated_by>
+        <sys_updated_on>2020-11-26 14:48:27</sys_updated_on>
+        <template><![CDATA[<section class="welcome" 
+         id="welcome">
+</section>]]></template>
+    </sp_widget>
+</record_update>

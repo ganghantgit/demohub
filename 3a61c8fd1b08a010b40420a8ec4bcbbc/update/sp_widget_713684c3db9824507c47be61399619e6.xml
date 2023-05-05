@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller=function(spUtil) {
+	/* widget controller */
+	var c = this;
+	
+	c.$onInit = function() {
+		getNarrativeInfo(c.narrSysId);
+	};
+
+	c.narrSysId = c.options.shared.sys_id;
+	c.narrInfo = c.narrInfo || {};
+	c.isLoading = false;	
+	c.activeTab = c.options.shared.currentTarget.dataset.tab ? c.options.shared.currentTarget.dataset.tab : 'default';
+
+	function getNarrativeInfo(sysId) {
+		c.isLoading = true;
+
+		c.server.get({
+			action: "getNarrativeInfo",
+			sys_id: sysId
+		}).then(function(response) {
+			c.isLoading = false;
+			c.narrInfo = response.data.narrative_info;
+			spUtil.get("demohub_app_scenarios", {"narrative_sys_id": sysId, "action": 'init'}).then(function(response) {
+				c.scenarioWidget = response;
+			});   
+		});        
+	}
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>// overrides
+
+.narrative-modal .panel-heading.row h2.h4.panel-title {
+  display: none;
+}
+
+.narrative-modal .content.scenarios {
+  margin: unset;
+  margin-top: 1rem;
+}
+
+// bootstrap override
+.form-control {
+  border-radius: unset !important;
+  .has-error
+    border: 1px solid red;
+  }
+}
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>demohub_app_guided_step3</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>DemoHub App Guided Step3</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+	/* populate the 'data' object */
+	/* e.g., data.table = $sp.getValue('table'); */
+	if (input && input.action === "getNarrativeInfo") {
+		var sysId = input.sys_id;
+
+		data.narrative_info = new x_snc_demohub_app.find().getStep3ModalInfo(sysId);
+	}
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-11-09 21:45:23</sys_created_on>
+        <sys_id>713684c3db9824507c47be61399619e6</sys_id>
+        <sys_mod_count>50</sys_mod_count>
+        <sys_name>DemoHub App Guided Step3</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_widget_713684c3db9824507c47be61399619e6</sys_update_name>
+        <sys_updated_by>kevin.moreno</sys_updated_by>
+        <sys_updated_on>2020-11-30 16:42:13</sys_updated_on>
+        <template><![CDATA[<section class="narrative-modal">  
+	<uib-tabset active="::c.activeTab === 'default'">
+    <uib-tab index="0" 
+             heading="Scenarios">
+      <div class="content scenarios">
+        <sp-widget widget="c.scenarioWidget"></sp-widget>
+      </div><!-- end content -->
+    </uib-tab>
+    <uib-tab ng-if="::c.narrInfo.additional_instructions"
+             active="::c.activeTab === 'manualSteps'"
+             index="2">
+      <uib-tab-heading>
+        Manual Steps<i class="fa fa-wrench"></i>
+      </uib-tab-heading>
+      <div class="content">
+        <narrative-manual-steps data="c.narrInfo.additional_instructions"></narrative-manual-steps>
+      </div>    
+    </uib-tab>
+  </uib-tabset>  
+</section>
+]]></template>
+    </sp_widget>
+</record_update>

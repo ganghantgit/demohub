@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_ng_template">
+    <sp_ng_template action="INSERT_OR_UPDATE">
+        <id>narrativeAttachmentTemplate.html</id>
+        <sp_widget display_value="DemoHub App Guided Step1">59950c83db9824507c47be6139961924</sp_widget>
+        <sys_class_name>sp_ng_template</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-11-29 15:38:17</sys_created_on>
+        <sys_id>d4a1b11ddbbc64d00db2d602ca9619a1</sys_id>
+        <sys_mod_count>4</sys_mod_count>
+        <sys_name>narrativeAttachmentTemplate.html</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_ng_template_d4a1b11ddbbc64d00db2d602ca9619a1</sys_update_name>
+        <sys_updated_by>luis.chavarria</sys_updated_by>
+        <sys_updated_on>2022-01-18 21:51:24</sys_updated_on>
+        <template><![CDATA[<div class="table-responsive">
+  <table class="table">
+    <thead>
+      <tr>
+        <th ng-repeat="head in c.tableHead">{{ head }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="item in c.narrBrief.attachments">
+        <td>{{ $index + 1}}</td>
+        <td class="col-xs-7">
+          <!--<a uib-tooltip="{{ item.file_name }}"
+             ng-href="$viewer.do?sysparm_stack=no&sysparm_sys_id= {{ item.sys_id }}" 
+             target="_blank">{{ ::item.file_name | limitTo: 45 }}
+            {{ ::item.file_name.length > 45 ? '...' : '' }}
+          <i class="fa fa-external-link" 
+             aria-hidden="true"></i></a>-->
+          <span uib-tooltip="{{ item.file_name }}">{{ ::item.file_name | limitTo: 45 }}
+            {{ ::item.file_name.length > 45 ? '...' : '' }} 
+          </span>
+        </td>
+        <td class="col-xs-2"> {{ ::item.sizeInKB }} KB </td>
+        <td class="col-xs-2 file-download">
+          <a ng-href="{{ ::item.url }}">
+            <i class="{{ ::item.css_class }}" 
+               aria-hidden="true"></i>
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>]]></template>
+    </sp_ng_template>
+</record_update>

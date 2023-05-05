@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_angular_provider">
+    <sp_angular_provider action="INSERT_OR_UPDATE">
+        <name>narrativePersona</name>
+        <script><![CDATA[function(getTemplateUrl, $http, spUtil) {
+    return {
+        restrict: 'E',
+        replace: true,
+        scope: {
+            data: '='
+        },
+			  templateUrl: getTemplateUrl('x_snc_dh_app_home_personaTemplate'),
+				link: function(scope, element, attrs) {
+				},
+			  controller: function($scope) {
+					var apiBookmarkUrl = '/api/now/table/sys_ui_bookmark';
+					var apiPersonaUrl = '/api/now/table/x_snc_demo_persona_personal_management';
+					var currentUserId = $scope.$root.user.sys_id;
+					
+					$scope.isLoading = true;
+					$scope.isEditing = $scope.isEditing || {};
+					$scope.password = $scope.password || {};
+					$scope.bookmark = $scope.bookmark || {};
+					
+					$scope.persona = $scope.persona || {};
+					
+					$scope.updatePersonaPassword = updatePersonaPassword;
+					$scope.addPersonaBookmark = addPersonaBookmark;
+					$scope.toggleEdit = toggleEdit
+					
+					this.$onInit = function() {						
+						getPersonaBookmarks();
+					}					
+
+					function toggleEdit(sysId) {
+						$scope.isEditing[sysId] = !$scope.isEditing[sysId];
+					}
+					
+					function addBookmarkProp(objects, arr) {
+							objects.forEach(function(obj) {
+									if (arr.indexOf(obj.user_sys_id) != -1) {
+											obj.fav = true;
+									} else {
+											obj.fav = false;
+									}
+							});
+
+							return objects;
+					}
+
+					function getPersonaBookmarks() {
+						$scope.isLoading = true;
+						
+						var encodedQuery = '?sysparm_query=user%3D' + currentUserId + '%5EurlSTARTSWITH%2Fx_snc_demo_persona_Impersonate User.do?&sysparm_fields=url';
+						var url = apiBookmarkUrl + encodedQuery;
+						
+						$http.get(url).then(function success(response) {
+							var data = angular.copy(response.data.result);
+							$scope.isLoading = false;
+							
+							var personaId = data.map(function(item) {
+								return item.url;
+							}).map(function(url) {
+								return url.slice(45);
+							}).filter(unique);
+
+							$scope.personas = addBookmarkProp($scope.data, personaId);					
+
+						}, function error(response) {
+							spUtil.addErrorMessage('Failed to get to bookmark list.' );							
+						});								
+					}
+					
+					function unique (val, index, self) {
+						return self.indexOf(val) === index;
+          }				
+					
+					function updatePersonaPassword(item) {
+						var fieldName = 'u_password';
+						var sysId = item.sys_id;
+						var encodedQuery = '/'+sysId + '?sysparm_fields=' + fieldName;
+						var url = apiPersonaUrl + encodedQuery;
+
+						$scope.password[sysId] = {};
+						$scope.password[sysId].isLoading = true;
+						$scope.isEditing[sysId] = true;
+						
+						var data = {
+							"u_password": item.password
+						}
+
+						$http.put(url, data).then(function success(response) {
+							$scope.password[sysId].isLoading = false;
+							$scope.isEditing[sysId] = false;
+							spUtil.addInfoMessage('Password for ' + item.name + ' has been successfully updated' );
+							
+						}, function error(response) {
+							$scope.password[sysId].isLoading = false;
+							$scope.isEditing[sysId] = false;
+							
+							spUtil.addErrorMessage('Password update for ' + item.name + ' has failed' );						
+						});
+					}
+										
+					function addPersonaBookmark(personaId, personaName, personaSysId) {			
+						$scope.bookmark[personaSysId] = {};
+						$scope.bookmark[personaSysId].isLoading = true;
+						
+						var data = {
+							'auto_add' : 'false',
+							'color' : 'purple',
+							'flyou' : 'false',
+							'icon' : 'tack',
+							'pinned' : 'true',
+							'order' : '2',
+							'title' : 'Impersonate - ' + personaName,
+							'url' : '/x_snc_demo_persona_Impersonate User.do?user=' + personaId,
+							'user' : currentUserId
+						}
+						
+						$http.post(apiBookmarkUrl, data).then(function success(response) {
+							var res = response.data.result;
+							res.id = response.data.result.sys_id;				
+							
+							CustomEvent.fireAll('magellanNavigator:favoriteSaved', res);
+							
+							$scope.bookmark[personaSysId].isLoading = false;
+							$scope.bookmark[personaSysId].isBookmarked = true;
+							spUtil.addInfoMessage(personaName + ' has been successfully added to the bookmark list.' );
+									
+						}, function error(response) {
+							spUtil.addErrorMessage('Failed to add ' + personaName + ' to bookmark list.' );						
+						});	
+						
+						
+					}
+					
+					console.log($scope)
+				}
+    }
+}]]></script>
+        <sys_class_name>sp_angular_provider</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-11-28 14:40:04</sys_created_on>
+        <sys_id>98ba98cddbb820d07c47be61399619c2</sys_id>
+        <sys_mod_count>212</sys_mod_count>
+        <sys_name>narrativePersona</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_angular_provider_98ba98cddbb820d07c47be61399619c2</sys_update_name>
+        <sys_updated_by>ansoo.chang</sys_updated_by>
+        <sys_updated_on>2020-12-11 17:49:42</sys_updated_on>
+        <type>directive</type>
+    </sp_angular_provider>
+</record_update>

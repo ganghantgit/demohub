@@ -1,0 +1,608 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller=function() {
+  /* widget controller */
+  var c = this;
+	
+    c.$onInit = function() {
+			var colors = angular.copy(c.data.colors);
+			
+			c.colors = setColors(colors);
+			c.nav = angular.copy(c.data.nav);
+    };
+	
+	  c.guide = {};
+	  c.guide.updated = '12/14/2020';
+		c.colors = c.colors || [];
+	  c.nav = c.nav || [];
+	
+		function setColors(colors) {
+			var result = [];
+			
+			for (var i=0; i <colors.length; i++) {				
+				result.push({
+					name: colors[i].slice(7).replace('-',' '),
+					css: colors[i].slice(7),
+					code: colors[i]
+				})
+			}
+			return result;
+			
+		}
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.style-guide-container {
+	@include font-medium;
+}
+
+.sg-header .sg-logo + p {
+  font-size: $font-size-sm;
+}
+
+label {
+	color: darkgrey;
+  margin-right: 0.125rem;
+}
+
+label:after {
+    content: ": "
+}
+
+%clearfix {
+  &amp;:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
+
+.sg-wrapper {
+  @extend %clearfix;
+}
+
+.main-wrapper {
+  width: 70%;
+  margin: 0 auto;
+  @extend %clearfix;
+}
+
+// colors
+.iceberg-green {
+  background: $color-iceberg-green;
+}
+.gainsboro-grey {
+  background: $color-gainsboro-grey;
+}
+.gable-green {
+  background: $color-gable-green;
+}
+.acapulco-green {
+  background: $color-acapulco-green;
+}
+.cloud-white {
+  background: $color-cloud-white;
+}
+.plain-grey {
+  background: $color-plain-grey;
+}
+.persimmon-red {
+  background: $color-persimmon-red;
+}
+.fountain-blue {
+  background: $color-fountain-blue;
+}
+.dark-grey {
+  background: darkgrey;
+}
+.light-grey {
+  background: lightgrey;
+}
+.confetti-yellow {
+	background: $color-confetti-yellow;
+}
+
+// typography
+.font-large {
+	font-size: $font-size-lg;
+}
+
+.font-small {
+	font-size: $font-size-sm;
+}
+
+.font-xsmall {
+	font-size: $font-size-xsm;
+}
+
+.font-bold {
+	@include font-bold;
+}
+
+.font-light {
+	@include font-light;
+}
+
+.font-medium {
+	@include font-medium;
+}
+
+// forms
+form {}
+
+// loaders
+.fa.fa-circle-o-notch {
+	color: $color-acapulco-green;
+}
+
+/* loader */
+.loader-wrapper {
+	background: $color-cloud-white;
+  padding: 2rem 0;
+}
+
+.loader-container {
+  margin-top: 2rem;
+	display: flex;
+  justify-content: center;
+}
+
+.loader {
+	@include spinner-dhapp-primary;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* override all boostrap form input fields */
+.form-control[disabled],
+.form-control[readonly],
+fieldset[disabled] .form-control,
+.form-control {
+	border-radius: unset !important;
+	border: 1px solid red;
+	outline: none !important;
+	box-shadow: none !important;
+	border: 1px solid #293e40 !important;
+}
+
+input[type="text"], select {
+  @include font-light;
+	outline: none !important;
+	box-shadow: none !important;
+	border:1px solid $color-primary !important;
+}
+
+.btn.btn-dhapp-primary {
+	@include button-dhapp-primary;
+}
+
+.btn.btn-dhapp-primary.btn-lg.fixed {
+	width: 10rem;
+}
+
+.sg-header {
+  padding: 1.5rem;
+  background: white;
+  margin-bottom: 2rem;
+}
+
+.sg-sidebar {
+  position: fixed;
+  float: left;
+  background: white;
+  width: 300px;
+  height: 100%;
+  box-shadow: 2px 0px 0px 0px rgba(black, .05);
+}
+
+
+.sg-nav-group {
+  padding-bottom: 1rem;
+}
+
+.sg-nav-header {
+  color: darkgrey;
+  padding-left: 1.5rem;
+}
+
+.sg-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  a {
+    display: block;
+    padding: .6rem 1.5rem;
+    border-left: 5px solid transparent;
+    text-decoration: none;
+    &amp;:hover {
+      transition: .2s;
+    }
+  }
+}
+
+.sg-main {
+  float: right;
+  width: 100%;
+  padding-left: 300px;
+}
+
+.sg-main-header {
+  padding: 9.5rem 0 2.5rem;
+  background-image: url("airballoon.png");
+  background-position: right top;
+  background-repeat: no-repeat;
+  background-size: contain;
+  margin-bottom: 4rem;
+  margin-top: 7rem;
+    h2 {
+        @include font-bold;
+        color: $color-primary;
+      }
+}
+
+.sg-main-header.first {
+  margin-top: 0;
+}
+
+.sg-section {
+  margin-bottom: 4rem;
+  padding-bottom: 3rem;
+  border-bottom: 2px solid rgba(black, .05);
+  @extend %clearfix;
+  &amp;.last {
+    border: none;
+  }
+}
+
+.sg-color {
+  height: 150px;
+  margin: 1.5rem 0 1rem;
+}
+
+.l-33 {
+  width: 33%;
+  padding-right: 4%;
+  float: left;
+}
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>demohub_app_style_guide</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>DemoHub App Style Guide</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+  /* populate the 'data' object */
+  /* e.g., data.table = $sp.getValue('table'); */
+	
+	if (!input) {
+		data.colors = ['$color-gable-green', 
+									'$color-acapulco-green', 
+									'$color-cloud-white', 
+									'$color-plain-grey', 
+									'$color-persimmon-red', 
+									'$color-fountain-blue', 
+								  '$color-light-grey',
+								  '$color-dark-grey',
+									'$color-confetti-yellow'];
+		
+		
+		data.nav = [
+			{
+				label: 'Colors',
+				href: '#colors'
+			},
+			{
+				label: 'Typography',
+				href: '#typography'
+			},
+			{
+				label: 'Loading',
+				href: '#loading'
+			},
+			{
+				label: 'Table',
+				href: '#table'
+			},			
+			{
+				label: 'Buttons',
+				href: '#buttons'
+			},
+			{
+				label: 'Form',
+				href: '#forms'
+			},
+			{
+				label: 'Icons',
+				href: '#icons'
+			}			
+		]
+		
+		data.icon = [
+			{
+				icon: 'icon-arrow-down',
+				code: 'icon-arrow-down'
+			},
+			{
+				icon: 'icon-essentials',
+				code: 'icon-essentials'				
+			},
+			{
+				icon: 'icon-view',
+				code: 'icon-view'				
+			},
+			{
+				icon: 'icon-tack',
+				code: 'icon-tack'				
+			},
+			{
+				icon: 'icon-add-circle-empty',
+				code: 'icon-add-circle-empty'				
+			},
+			{
+				icon: 'glyphicon glyphicon-time',
+				code: 'glyphicon glyphicon-time'				
+			},
+			{
+				icon: 'fa fa-external-link',
+				code: 'fa fa-external-link'				
+			},
+			{
+				icon: 'fa fa-exclamation',
+				code: 'fa fa-exclamation'				
+			},
+			{
+				icon: 'glyphicon glyphicon-time',
+				code: 'glyphicon glyphicon-time'				
+			},
+			{
+				icon: 'icon-arrow-left',
+				code: 'icon-arrow-left'				
+			},
+			{
+				icon: 'icon-cog-changes',
+				code: 'icon-cog-changes'				
+			},
+			{
+				icon: 'icon-download',
+				code: 'icon-download'				
+			},
+			{
+				icon: 'fa fa-search',
+				code: 'fa fa-search'				
+			},
+			{
+				icon: 'fa fa-times-circle-o',
+				code: 'fa fa-times-circle-o'				
+			},
+			{
+				icon: 'fa fa-circle-o-notch',
+				code: 'fa fa-circle-o-notch'				
+			},
+			{
+				icon: 'fa fa-caret-down',
+				code: 'fa fa-caret-down'				
+			},
+			{
+				icon: 'fa fa-caret-up',
+				code: 'fa fa-caret-up'				
+			},
+			{
+				icon: 'fa fa-ellipsis-h',
+				code: 'fa fa-ellipsis-h'				
+			},
+			{
+				icon: 'fa fa-check',
+				code: 'fa fa-check'				
+			},
+			{
+				icon: 'fa fa-exclamation',
+				code: 'fa fa-exclamation'
+			},
+			{
+				icon: 'fa fa-wrench',
+				code: 'fa fa-wrench'				
+			},
+			{
+				icon: 'fa fa-users',
+				code: 'fa fa-users'				
+			},
+			{
+				icon: 'fa fa-cloud-download',
+				code: 'fa fa-cloud-download'				
+			}
+		]
+	}
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-12-13 20:01:23</sys_created_on>
+        <sys_id>317476f1dbcdec107c47be6139961966</sys_id>
+        <sys_mod_count>282</sys_mod_count>
+        <sys_name>DemoHub App Style Guide</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_widget_317476f1dbcdec107c47be6139961966</sys_update_name>
+        <sys_updated_by>ansoo.chang</sys_updated_by>
+        <sys_updated_on>2020-12-14 19:45:13</sys_updated_on>
+        <template><![CDATA[<section class="style-guide-container">
+  <div class="sg-sidebar">
+    <div class="sg-header">
+      <a herf="#">
+        <h1 class="sg-logo">
+          Style Guide
+        </h1>
+        <p>
+          <label>Updated</label>{{ c.guide.updated }}
+        </p>
+      </a>
+    </div>
+    <nav class="sg-nav">
+      <div class="sg-nav-group">
+        <h3 class="sg-nav-header">Patterns</h3>
+        <ul class="sg-nav-list">
+          <li ng-repeat="nav in c.nav">
+            <a href="{{ nav.href }}">
+              {{ nav.label }}
+            </a>
+          </li>
+        </ul>        
+      </div>  
+    </nav>
+  </div><!--end of sidebar--> 
+  <div class="sg-main">
+    <div class="sg-main-header first">
+      <div class="main-wrapper">
+        <h2 id="theBasics">DemoHub App</h2>
+        <h4>
+          Style Guide
+        </h4>
+      </div>
+    </div>
+    <div class="main-wrapper">
+      <div class="sg-section">
+        <p>Living style guides are a great tool to improve communication and consistency throughout the design and
+          UI/UX development of a website. Use this style guide as a reference to all possible styles and patterns 
+          currently used in the demohub app home code base. </p>
+      </div>
+      <!-- colors -->
+			<div class="sg-section">
+        <h3 id="colors">Colors</h3>
+        <div class="l-33" ng-repeat='color in c.colors'>
+          <div class="sg-color {{ color.css }}"></div>
+          <p class="sg-colorName">{{ color.name }}</p>
+        </div>     
+      </div><!-- end colors -->
+      <!-- typography -->
+      <div class="sg-section">
+        <h3 id="typography">Typography</h3>
+        <h1 class="h1">This is an h1 headline</h1>
+        <h2 class="h2">This is an h2 headline</h2>
+        <h3 class="h3">This is an h3 headline</h3>
+        <h4 class="h4">This is an h4 headline</h4>
+      </div>
+      <div class="sg-section">
+        <p class="font-bold">This is what bold font looks like.</p>
+        <p class="font-medium">This is what medium fontlooks like.</p>
+        <p class="font-light">This is what light font looks like.</p>
+      </div>      
+      <div class="sg-section">
+        <p class="font-large">This is what large font looks like.</p>
+        <p class="">This is what a normal font looks like.</p>
+        <p class="font-small">This is what a small font looks like.</p>
+        <p class="font-xsmall">This is what a x-small font looks like.</p>
+      </div>
+      <div class="sg-section">
+        <p>This is a normal body of text. The font size is set to a standard 1rem, or 16px for easy reading.</p>
+      </div>
+      <div class="sg-section">
+        <h3 id="loading">Loading</h3>
+          <div class="loader-wrapper">
+					<p class="text-center"><i class="fa fa-circle-o-notch fa-spin"></i></p>
+          <!-- loading spinner -->
+          <div class="loader-container">
+            <div class="loader"></div>
+          </div>
+          </div>  
+      </div>
+      <div class="sg-section">
+        <h3 id="table">Table</h3>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>State</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-xs-2">1</td>
+                <td class="col-xs-3">...</td>
+                <td class="col-xs-3">...</td>
+                <td class="col-xs-2">...</td>
+                <td class="col-xs-2">...</td>
+              </tr>
+              <tr>
+                <td class="col-xs-2">2</td>
+                <td class="col-xs-3">...</td>
+                <td class="col-xs-3">...</td>
+                <td class="col-xs-2">...</td>
+                <td class="col-xs-2">...</td>
+              </tr>            
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div class="sg-section">
+        <h3 id="buttons">Buttons</h3>
+        <button type="submit" class="btn btn-dhapp-primary btn-lg">Large</button>
+        <button type="submit" class="btn btn-dhapp-primary">Medium</button>
+        <button type="submit" class="btn btn-dhapp-primary btn-sm">Small</button>
+      </div>        
+      <div class="sg-section">
+        <h3 id="forms">Form</h3>
+          <form>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="inputEmail4">Email</label>
+                <input type="email" class="form-control" id="inputEmail4" placeholder="Email">
+              </div>
+              <div class="form-group">
+                <label for="inputPassword4">Password</label>
+                <input type="password" class="form-control" id="inputPassword4" placeholder="Password">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="inputAddress">Address</label>
+              <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
+            </div>
+            <button type="submit" class="btn btn-dhapp-primary">Sign in</button>
+          </form>
+      </div>
+      
+			<div class="sg-section">
+        <h3 id="icons">Icons</h3>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Icon</th>
+                <th>Code</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="icon in c.data.icon">
+                <td class="col-xs-2">
+                  <icon class="{{ icon.icon }}"></icon>
+                </td>
+                <td class="col-xs-10">
+                  {{ icon.code }}
+                </td>         
+            </tbody>
+          </table>
+        </div>
+      </div>      
+      
+    </div>
+  	</div>
+</section>]]></template>
+    </sp_widget>
+</record_update>

@@ -1,0 +1,846 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function ($scope, $location, $rootScope, spUtil, $interpolate, $timeout, spModal) {
+	var c = this;
+
+	c.catalogOpen = false;
+	c.executingLoad = "";
+	c.scenarios = "x_snc_demohub_app_m2m_narrative_sc_narratives";
+	c.scenarioInstances = "x_snc_dh_app_setup_narrative_variables_instances";
+	c.loaders = "x_snc_demohub_app_m2m_load_experie_narratives";
+	c.confirmManualRun = confirmManualRun;
+	$scope.dataIsLoading = false;
+	$scope.isApplying = false;
+	this.data.filterText = "";
+	this.showFilter = false;
+
+	this.onClick = function(item) {
+		if(item.className == "x_snc_dh_app_setup_narrative_variables_instances")
+			return;
+
+		var evt = {};
+		evt.table = item.className;
+		evt.sys_id = item.sys_id;
+		evt.record = item;
+		if(item.className == "x_snc_demohub_app_m2m_narrative_sc_narratives")
+			$rootScope.$broadcast('showScenariosList', evt);
+		else if(item.className == "x_snc_demohub_app_m2m_load_experie_narratives"){
+			var loaderError = {
+				message: "", 
+				url:"",
+				display: false
+			};
+
+			$rootScope.$broadcast('loaderFailed', loaderError);
+
+			c.server.get({action: 'getLoaderCatItem', loader_id: item.sys_id}).then(function(response_data){
+				var scenariosCatItemOptions = {
+					catalog_id: response_data.data.loaderCatItem,
+					scenario_instance_sys_id: "-1",
+					type: "load_execution",
+					load_sys_id: response_data.data.loader
+				}
+
+				spUtil.get("demohub_app_catalog_item", scenariosCatItemOptions).then(function(response) {
+					c.scenarioCatalogItemWidget = response;
+					c.timeout();
+					c.catalogOpen = true;
+					$rootScope.$broadcast('showPreviousBtn', true);
+				});
+			});
+		}
+	};
+
+	this.applyTailor = function(item) {
+		var evt = {};
+		evt.table = item.className;
+		evt.sys_id = item.sys_id;
+		evt.record = item;
+		c.data.executed_tailor = item.sys_id;
+		$rootScope.$broadcast('applyTailor', evt);
+	};
+
+	$scope.$watch('$parent.isApplying', function(newValue, oldValue,scope) {
+		if(newValue != oldValue){
+			$scope.isApplying = newValue;
+		}
+	},true);
+
+	if (c.options.table && c.options.disable_record_watcher != 'true')
+		spUtil.recordWatch($scope, c.options.table, c.options.filter);
+
+	this.getMaxShownLabel = function(maxEntries, totalCount) {
+		if (totalCount == c.data.maxCount)
+			return "${First [0] of more than [1]}".replace('[0]', maxEntries).replace('[1]', totalCount);
+
+		return "${First [0] of [1]}".replace('[0]', maxEntries).replace('[1]', totalCount);
+	};
+
+	this.seeAllPage = c.options.list_page_dv || 'list';
+	this.targetPageID = (c.options.sp_page) ? "&target_page_id=" + c.options.sp_page : "";
+
+	c.getMaxHeight = function() {
+		return c.options.panel_body_height || 'none';
+	};
+
+	c.getActionColor = function(action) {
+		return "text-" + action.color;
+	};
+
+	c.update = function update() {
+		c.server.update();
+	}
+
+	c.toggleFilter = function() {
+		c.showFilter = !c.showFilter;
+	}
+
+	this.editItem = function(item) {
+		c.validateTailor(c.options.scenario);
+
+		if(c.validation_message != ""){
+			spUtil.addErrorMessage(c.validation_message);
+			return;
+		}else{
+			var state = "";
+			state = "edit_scenario_instance";
+			$rootScope.$broadcast('updateState', state);
+
+			var scenariosCatItemOptions = {
+				catalog_id: c.data.catItem,
+				scenario_instance_sys_id: item.sys_id,
+				type: "scenario_instance"
+			}
+
+			spUtil.get("demohub_app_catalog_item", scenariosCatItemOptions).then(function(response) {
+				c.scenarioCatalogItemWidget = response;
+				c.timeout();
+				c.catalogOpen = true;
+			});
+		}
+	};
+
+	this.newItem = function() {
+		c.validateTailor(c.options.scenario);
+
+		if(c.validation_message != ""){
+			spUtil.addErrorMessage(c.validation_message);
+			return;
+		}else{
+			var state = "";
+			state = "new_scenario_instance";
+			$rootScope.$broadcast('updateState', state);
+
+			var scenariosCatItemOptions = {
+				catalog_id: c.data.catItem,
+				scenario_instance_sys_id: "-1",
+				type: "scenario_instance"
+			}
+
+			spUtil.get("demohub_app_catalog_item", scenariosCatItemOptions).then(function(response) {
+				c.scenarioCatalogItemWidget = response;
+				c.timeout();
+				c.catalogOpen = true;
+			});	
+		}
+	};
+
+	$scope.$on('loadExecutionCreated', function(event, data){
+		if(data.load_execution_inserted){
+			$scope.dataIsLoading = true;
+			c.timeout();
+			c.executingLoad = data.load_sys_id; 
+			c.catalogOpen = false;
+
+			spUtil.recordWatch($scope, "x_snc_dh_app_load_load_execution", "load_status=COMPLETE^ORload_status=ERROR^ORload_status=CANCELLED^sys_created_onRELATIVEGT@dayofweek@ago@1^load_experience_record.sys_id=" + data.load_sys_id, function(record) {
+				if(record.data.changes[0] == "load_status" && record.data.record.load_status.display_value == "Complete"){
+					$scope.dataIsLoading = false;
+					c.executingLoad = "";
+					$rootScope.$broadcast('refreshStep4Data', true);
+				}else if(record.data.changes[0] == "load_status" && record.data.record.load_status.display_value != "Complete"){
+					$scope.dataIsLoading = false;
+					c.executingLoad = "";
+					var loaderError = {
+						message: "There was an error running the Loader " + record.data.record.load_experience_record.display_value + ", click here to review", 
+						url:"/nav_to.do?uri=/x_snc_dh_app_load_load_experience.do?sys_id=" + record.data.record.load_experience_record.value,
+						display: true
+					};
+					$rootScope.$broadcast('loaderFailed', loaderError);
+				}
+			});
+		}
+	}); 
+
+	c.validateTailor = function(scenario_id){
+		c.isLoading = true;
+		c.validation_message = "";
+		c.server.get({action:'getTailorValidation', scenarioSysId: scenario_id}).then(function(response){
+			c.validation_message = response.data.validation_message;
+			c.isLoading = false;
+		});
+	};
+
+	c.timeout = function(){
+		$timeout(function(){
+			c.isLoading = false;
+		}, 2000);
+	}
+
+	//Manual Run Confirmation Modal
+	function confirmManualRun(loader){
+		var warn = '<i class="fa fa-warning" aria-hidden="true"></i>';
+		var loader_name = loader.display_field.display_value;
+		spModal.open({
+			title: 'Loader Manual Run',
+			message: "<p>" + warn + " This action will flag the <b>" + loader_name + "</b> loader as used."+
+			"<br/>Internal processes won't run and data wil not be modified. </p>" + 
+			"<br/> Do you want to continue?",
+			buttons: [
+				{label:'✘ ${No}', cancel: true},
+				{label:'✔ ${Yes}', primary: true}
+			]
+		}).then(function(confirmed) {
+			executeManualRun(loader)
+		})
+	}
+
+	function executeManualRun(loader){
+		$scope.dataIsLoading = true;
+		loader_id = loader.display_field.value;
+		c.executingLoad = loader_id;
+		c.server.get({action:'executeManualRun', loader_id: loader_id}).then(function(response){
+			var execution_info = response.data.execution_info;
+			if(execution_info && Object.keys(execution_info).length !== 0){
+				spUtil.addInfoMessage("The loader ran successfully");
+				loader.loader_executed = execution_info.executed;
+				loader.date = execution_info.executed_on;
+			}else{
+				spUtil.addErrorMessage("Something went wrong, the loader could not be run");	
+			}
+			
+			$scope.dataIsLoading = false;
+			c.executingLoad = "";
+		});
+	}
+
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.panel {&#13;
+  position: relative;&#13;
+}&#13;
+&#13;
+.panel-heading.row {&#13;
+    background: none!important;&#13;
+}&#13;
+&#13;
+h2.h4.panel-title {&#13;
+    margin-top: .5em;&#13;
+}&#13;
+&#13;
+.panel-heading i {&#13;
+  cursor: pointer;&#13;
+  position: absolute;&#13;
+  padding: 10px;&#13;
+  top: 0px;&#13;
+  right: 0px;&#13;
+  cursor: pointer;&#13;
+}&#13;
+&#13;
+.disabled-filter {&#13;
+	color: #A0A0A0;&#13;
+}&#13;
+&#13;
+.list-group-item.ng-enter {&#13;
+  transition: all 1s;&#13;
+  -webkit-transition: all 1s;&#13;
+&#13;
+  background-color: #c0dcfa;&#13;
+}&#13;
+&#13;
+.list-group-item.ng-enter-active {&#13;
+  background-color: #fff;&#13;
+}&#13;
+&#13;
+.hide-x-overflow {&#13;
+  overflow-x: hidden;&#13;
+}&#13;
+&#13;
+.translated-html &gt; p {&#13;
+  margin: 0px;&#13;
+  padding: 0px;&#13;
+}&#13;
+&#13;
+IMG {&#13;
+  max-width: 320px;&#13;
+  max-height: 240px;&#13;
+}&#13;
+&#13;
+IMG.img-sm {&#13;
+  max-height: 40px;&#13;
+  max-width: 40px;&#13;
+}&#13;
+&#13;
+.scenario-thumbnail{&#13;
+  max-height: 150px;&#13;
+  max-width: 150px;&#13;
+}&#13;
+&#13;
+.filter-box {&#13;
+  margin-top: 10px;&#13;
+}&#13;
+&#13;
+.panel-footer {&#13;
+  .number-shown-label {&#13;
+    margin-top: 0;&#13;
+    margin-bottom: 0;&#13;
+    font-size: 16px;&#13;
+    display: inline-block;&#13;
+  }&#13;
+&#13;
+  a {&#13;
+    color: inherit;&#13;
+  }&#13;
+}&#13;
+&#13;
+.list-group-item &gt; a {&#13;
+	display: inline-block;&#13;
+}&#13;
+&#13;
+button.btn.btn-default {&#13;
+    width: auto !important;&#13;
+  	padding: 0.25rem 1rem;&#13;
+}&#13;
+.btn-dhapp-primary{&#13;
+	@include btn-dhapp-primary;&#13;
+}&#13;
+.btn-tailor {&#13;
+  float: right;&#13;
+  /*margin-top: -2.5em;*/&#13;
+}&#13;
+&#13;
+.badge-primary {&#13;
+  background-color: $color-brand-dark !important;&#13;
+  color: white !important;&#13;
+  border-radius: 0 !important;&#13;
+  font-weight: normal;&#13;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>demohub_app_simple_list</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>DemoHub App Simple List</name>
+        <option_schema>[{"name":"always_show","section":"Behavior","label":"Show even when empty","type":"boolean"},{"name":"panel_body_height","section":"Presentation","label":"List body height","type":"string"},{"name":"image_field","section":"Presentation","label":"Image field","type":"field_name"},{"name":"secondary_fields","section":"Data","label":"Secondary fields","type":"field_list"},{"name":"rounded_images","section":"Presentation","label":"Rounded images","type":"boolean"},{"displayValue":"Page","name":"list_page","section":"Data","label":"List page","type":"reference","value":"sp_page","ed":{"reference":"sp_page"}},{"name":"hide_footer","section":"Presentation","label":"Hide Footer","type":"boolean"},{"displayValue":"UI View","hint":"View to use when target page is a form","name":"view","section":"Behavior","label":"View","type":"reference","value":"sys_ui_view","ed":{"reference":"sys_ui_view"}},{"hint":"If checked, Simple List will not automatically updated based on changes to the filtered records","name":"disable_record_watcher","section":"Behavior","label":"Disable record watcher","type":"boolean"},{"name":"filter_acls","section":"Data","default_value":"false","label":"Enforce field-level Read ACLs on Filter query terms (may alter the query for unprivileged users)","type":"boolean"}]</option_schema>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function () {
+	//make record producer validations
+	if (input && input.action === "getTailorValidation"){
+		var scenario_sys_id = input.scenarioSysId;
+		data.validation_message = "";
+		
+		var temp_validation = false;
+		var scenarioUtils = new global.DHAppScenarioUtils();
+
+		var gr_tailor = new GlideRecord("x_snc_dh_app_setup_narrative_configuration_setup");
+		gr_tailor.get(scenario_sys_id);
+
+		var flow_sys_id = gr_tailor.setup_subflow+'';
+		var record_producer_sys_id = gr_tailor.record_producer+'';
+		var scenario_scope = gr_tailor.sys_scope+'';
+
+		validateLastUpdate(scenario_sys_id, flow_sys_id, record_producer_sys_id, scenario_scope);
+		temp_validation = scenarioUtils.validateVariables(flow_sys_id);
+		if(temp_validation){
+			data.validation_message = "There is a not supported Variable Type in the specified flow";
+			return;
+		}
+	}
+	
+	if(input && input.action == "getLoaderCatItem"){
+		var loaderCatItem = new GlideRecord("x_snc_demohub_app_m2m_load_experie_narratives");
+		loaderCatItem.get(input.loader_id);
+		
+		var table = 'x_snc_dh_app_load_load_experience';
+		var loadAppUtils = new global.DHAppUtils();
+		var type = 'load';
+		
+		var grLoader = new GlideRecord(table);
+		grLoader.get(loaderCatItem.loader + "");
+
+		var isUnloadUpdated = loadAppUtils.validateLastUpdate(grLoader.sys_id + "", table, 'unload_subflow', 'unload_flow_last_updated');
+		var isLoadUpdated = loadAppUtils.validateLastUpdate(grLoader.sys_id + "", table, 'load_subflow', 'load_flow_last_updated');
+
+		if(isUnloadUpdated == false || isLoadUpdated == false){
+			loadAppUtils.createRecordProducer(grLoader.sys_id + '', grLoader.scope, table, type);
+			loadAppUtils.syncLastUpdate(grLoader.sys_id + "", table, 'unload_subflow', 'unload_flow_last_updated');
+			loadAppUtils.syncLastUpdate(grLoader.sys_id + "", table, 'load_subflow', 'load_flow_last_updated');
+		}
+		
+		data.loaderCatItem = loaderCatItem.loader.record_producer + "";
+		data.loader = loaderCatItem.loader + "";
+	}
+	
+	if(input && input.action == 'executeManualRun'){
+		var loaderUtils = new global.DHAppUtils();
+		
+		data.execution_info = loaderUtils.createMunualExecution(input.loader_id);
+	}
+	
+	if(input){
+		options.table = input.table;
+		options.filter = input.filter;
+		options.display_field = input.display_field;
+		options.scenario_instance_description = input.scenario_instance_description;
+		options.scenario_instance_thumbnail = input.scenario_instance_thumbnail;
+		options.secondary_fields = input.secondary_fields === null?[]:input.secondary_fields;
+		options.active = input.active;
+		options.always_show = input.always_show;
+		options.color = input.color;
+		options.filter_acls = input.filter_acls;
+		options.glyph = input.glyph;
+		options.maximum_entries = input.maximum_entries;
+		options.order = input.order;
+		options.order_by = input.order_by;
+		options.order_direction = input.order_direction || "asc";
+		options.panel_body_height = input.panel_body_height;
+		options.size = input.size;
+		options.title = input.title;
+		options.narrative_sys_id = input.narrative_sys_id;
+		options.scenario = input.scenario || "";
+		options.hide_header = input.hide_header || false;
+		data.executed_instances = input.scenario_executions || "";
+		data.executed_tailor = input.executed_tailor || "";
+		data.loaders_executed = input.loaders_executed || {};
+	}
+	
+	
+	data.filterMsg = gs.getMessage("Filter...");
+	data.viewAllMsg = gs.getMessage("View all");
+	if (gs.nil(options.hide_footer)){
+		options.hide_footer = false;
+	}
+	options.hide_footer = (options.hide_footer == "true" || options.hide_footer == true);
+	options.table = options.table;
+	if (!options.table)
+		return;
+
+	var gr = new GlideRecordSecure(options.table); // does ACL checking for us
+	if (!gr.isValid()) {
+		data.isValid = false;
+		return;
+	} else
+		data.isValid = true;
+	
+	if(options.scenario != ""){
+		var getCatItem = new GlideRecord("x_snc_dh_app_setup_narrative_configuration_setup");
+		getCatItem.get(options.scenario);
+		
+		data.catItem = getCatItem.getValue("record_producer");
+	}
+	
+	// grTemp is used to check isValidField since using GlideRecordSecure fails for date/time fields
+	var grTemp = new GlideRecord(options.table);
+	if (options.filter_acls == "true")
+		gr = $sp.addQueryString(gr, options.filter);
+	else
+		gr.addEncodedQuery(options.filter);
+	
+	options.title = options.title || gr.getPlural();
+	options.display_field = options.display_field;
+	if (!options.display_field || !grTemp.isValidField(options.display_field))
+		options.display_field = gr.getDisplayName();
+
+	if (input && input.filterText){
+		gr.addEncodedQuery(options.display_field + "LIKE" + input.filterText);
+	}
+		
+
+	options.title = options.title || gr.getPlural();
+	options.secondary_fields = options.secondary_fields || "";
+	if(options.secondary_fields.length != 0)
+		options.secondary_fields = options.secondary_fields.split(",");
+	if (!options.order_by || !grTemp.isValidField(options.order_by))
+		options.order_by = options.display_field;
+
+	if (options.list_page) {
+		var sp_page = GlideRecord('sp_page');
+		if (sp_page.get(options.list_page))
+			options.list_page_dv = sp_page.getDisplayValue('id');
+	}
+	if (options.order_direction == "asc")
+		gr.orderBy(options.order_by);
+	else
+		gr.orderByDesc(options.order_by);
+	
+	data.maxCount = 500;
+	gr.setLimit(data.maxCount);
+	gr.query();
+
+	data.count = gr.getRowCount();
+	data.actions = getActions();
+	data.list = [];
+	var recordIdx = 0;
+	while (gr.next()) {
+		if (options.maximum_entries && recordIdx == options.maximum_entries)
+			break;
+
+		var record = {};
+		if (data.actions.length > 0) {
+			var fields = gr.getFields();
+			for (var i = 0; i < fields.size(); i++) {
+				var glideElement = fields.get(i);
+				var name = glideElement.getName();
+				if (name.indexOf("sys_") == -1)
+					record[name] = gr.getValue(name);
+			}
+		}
+
+		record.sys_id = gr.getValue('sys_id');
+		record.className = gr.getRecordClassName();
+		if (options.image_field) {
+			record.image_field = gr.getDisplayValue(options.image_field);
+			if (!record.image_field)
+				record.image_field = "noimage.pngx";
+		}
+
+		if (options.display_field)
+			record.display_field = getField(gr, options.display_field);
+		
+		if (options.scenario_instance_description != ""){
+			record.scenario_instance_description = getField(gr, options.scenario_instance_description);
+		}
+		
+		record.scenario_attachment = "";
+		
+		if (options.scenario_instance_thumbnail != ""){
+			var id = getField(gr, options.scenario_instance_thumbnail);
+			var ga = new GlideSysAttachment();
+			var att = new GlideRecord('sys_attachment');
+			att.addEncodedQuery('content_typeLIKEimage^table_sys_idSTARTSWITH' + id.display_value);
+			att.orderByDesc('sys_created_on');
+			att.setLimit(1);
+			att.query();
+
+			while (att.next()){
+				record.scenario_attachment = "data:" + att.getValue('content_type') + ";base64, " + ga.getContentBase64(att);
+			}
+		}
+	
+		record.secondary_fields = [];
+		if(options.secondary_fields != ""){
+			options.secondary_fields.forEach(function(f) {
+				record.secondary_fields.push(getField(gr, f));
+			});
+		}
+		
+		if (options.sp_page) {
+			var view = "sp";
+			if (options.view) {
+				var viewGR = new GlideRecord("sys_ui_view");
+				viewGR.get(options.view);
+				view = viewGR.getValue("name");
+			}
+			record.url = {id: options.sp_page, table: record.className, sys_id: record.sys_id, view: view};
+		} else if (options.url != '')
+			record.url = options.url;
+		else
+			record.url = null;
+		
+		if(data.executed_instances != ""){
+			record.last_execution = data.executed_instances[record.display_field.value];
+		}else{
+			record.last_execution = "";
+		}	
+		
+		if(Object.keys(data.loaders_executed).length > 0){
+			record.loader_executed = data.loaders_executed[record.display_field.value].executed;
+			record.state = data.loaders_executed[record.display_field.value].state;
+			record.date = data.loaders_executed[record.display_field.value].date;
+		}
+		
+		data.list.push(record);
+		
+		recordIdx++;
+	}
+
+	function getField(gr, name) {
+		var f = {};
+		f.display_value = gr.getDisplayValue(name);
+		f.value = gr.getValue(name);
+		var ge = gr.getElement(name);
+			if (ge == null)
+				return f;
+
+		f.type = ge.getED().getInternalType();
+		if (f.type == "glide_date_time")
+			f.isFuture = gs.dateDiff(gr.getValue(name), gs.nowNoTZ(), true) < 0;
+		else if (f.type == "glide_date")
+			f.isFuture = gs.dateDiff(gr.getValue(name), gs.now(), true) < 0;
+		f.label = ge.getLabel();
+		return f;
+	}
+
+	function getActions() {
+		var rl = new GlideRecord("sp_vlist_action");
+		rl.addQuery("sp_rectangle_vlist", $sp.getValue("sys_id"));
+		rl.query();
+		var actions = [];
+		while(rl.next()) {
+			var action = {};
+			$sp.getRecordValues(action, rl, "name,glyph,hint,url,color");
+			actions.push(action);
+		}
+		return actions;
+	}
+
+	function validateLastUpdate(scenario_sys_id, flow_sys_id, record_producer_sys_id, scenario_scope){
+		var str_scenario_sys_id = scenario_sys_id;
+		var str_flow_sys_id = flow_sys_id;
+		var str_record_producer_sys_id = record_producer_sys_id;
+		var str_scenario_scope = scenario_scope;
+
+		var grScenario = new GlideRecord("x_snc_dh_app_setup_narrative_configuration_setup");
+		grScenario.get(str_scenario_sys_id);
+
+		var grFlow = new GlideRecord("sys_hub_flow");
+		grFlow.get(str_flow_sys_id);
+
+		if(grScenario.rp_last_modified != grFlow.sys_updated_on){
+			new global.DHAppScenarioUtils().updateRecordProducerVariables(str_scenario_sys_id, str_flow_sys_id, str_record_producer_sys_id, str_scenario_scope);
+			grScenario.rp_last_modified = grFlow.sys_updated_on;
+			grScenario.update();
+		}
+	}
+	
+	
+	
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>kevin.moreno</sys_created_by>
+        <sys_created_on>2020-11-17 15:46:45</sys_created_on>
+        <sys_id>6ad0c465db6420907c47be613996199f</sys_id>
+        <sys_mod_count>331</sys_mod_count>
+        <sys_name>DemoHub App Simple List</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_widget_6ad0c465db6420907c47be613996199f</sys_update_name>
+        <sys_updated_by>natalia.marrufo</sys_updated_by>
+        <sys_updated_on>2022-08-04 14:38:29</sys_updated_on>
+        <template><![CDATA[<div class="panel panel-{{::c.options.color}} b container-fluid" ng-if="c.data.isValid && !c.catalogOpen && (c.options.always_show == 'true' || c.options.always_show == true || c.data.filterText || c.data.list.length)">
+  <div class="panel-heading row" ng-if="::!c.options.hide_header">
+    <div class="col-xs-10 col-md-10 col-lg-10 col-xl-10">
+      <h2 class="h4 panel-title">
+        <span ng-if="c.options.glyph">
+          <fa name="{{::c.options.glyph}}" />
+        </span>{{::c.options.title}}</h2>
+    </div>
+    <div class="col-xs-2 col-md-2 col-lg-2 col-xl-2">
+      <button ng-if="c.options.table != c.scenarios" ng-click="c.newItem()" class="btn btn-default">
+        <span class="icon-document"></span> New
+      </button>
+    </div>
+  </div>
+  <ul class="list-group hide-x-overflow" ng-style="::{maxHeight: c.getMaxHeight()}" style="overflow-y: auto;" ng-if="c.data.list.length > 0">
+    <li class="list-group-item row" ng-if="c.options.table != c.scenarioInstances">
+      <div>
+        <div class="col-xs-10 col-md-10 col-lg-10 col-xl-10">
+          <div class="col-xs-2 col-md-2 col-lg-2 col-xl-2 text-center">
+            Order
+          </div>
+          <div class="col-xs-10 col-md-10 col-lg-10 col-xl-10">
+          </div>
+        </div>
+      </div>
+    </li>
+    <li ng-repeat="item in c.data.list track by item.sys_id" class="list-group-item row">
+      <div>
+        <div ng-if="c.options.table == c.scenarios && item.display_field.display_value != ''" class="col-xs-10 col-md-10 col-lg-10 col-xl-10">
+          <div class="col-xs-2 col-md-2 col-lg-2 col-xl-2 text-center">
+            {{$index + 1}}
+          </div>
+          <div class="col-xs-10 col-md-10 col-lg-10 col-xl-10">
+            <span ng-repeat="action in c.data.actions" href="" ng-click="c.onClick($event, item, action.url, action)" ng-if="action.glyph"
+                  class="list-action l-h-40 pull-right">
+              <fa name="{{action.glyph}}" ng-class="c.getActionColor(action)" />
+            </span>
+            <span ng-if="c.options.image_field" class="pull-left m-r"
+                  ng-class="{'avatar': c.options.rounded_images, 'thumb-sm': c.options.rounded_images}">
+              <img ng-src="{{item.image_field}}" alt="..." class="img-sm" ng-class="{'img-circle': c.options.rounded_images}">
+            </span>
+            <div>
+              <div ng-switch on="item.display_field.type" ng-class="{'l-h-40': !item.secondary_fields.length}">
+                <span class="translated-html" ng-switch-when="translated_html" ng-bind-html="item.display_field.value"></span>
+                <div ng-switch-default>
+                  <a ng-href="/nav_to.do?uri=x_snc_dh_app_setup_narrative_configuration_setup.do?sys_id={{item.display_field.value}}" target="_blank">
+                    {{item.display_field.display_value}} <i class="fa fa-external-link" aria-hidden="true"></i>
+                  </a>
+                </div>
+              </div>
+              <small class="text-muted" ng-repeat="f in item.secondary_fields">
+                <span ng-if="!$first"><br/></span>
+                <span ng-switch="f.type" title="{{::f.label}}">
+                  <span ng-switch-when="glide_date">
+                    <span ng-if="!f.isFuture"> <sn-day-ago date="::f.value" /> </span>
+                    <span ng-if="f.isFuture"> {{f.display_value}}</span>
+                  </span>
+                  <span ng-switch-when="glide_date_time">
+                    <span ng-if="!f.isFuture"> <sn-time-ago timestamp="::f.value" /></span>
+                    <span ng-if="f.isFuture"> {{f.display_value}}</span>
+                  </span>
+                  <span ng-switch-default="">{{f.display_value}}</span>
+                </span>
+              </small>
+            </div>
+            <span ng-if="item.last_execution != ''" class="badge badge-primary">{{item.last_execution}}</span>
+          </div>
+        </div>
+        <div ng-if="c.options.table == c.scenarioInstances && item.display_field.display_value != ''" class="col-xs-10 col-md-10 col-lg-10 col-xl-10">
+          <span ng-repeat="action in c.data.actions" href="" ng-click="c.onClick($event, item, action.url, action)" ng-if="action.glyph"
+                class="list-action l-h-40 pull-right">
+            <fa name="{{action.glyph}}" ng-class="c.getActionColor(action)" />
+          </span>
+          <span ng-if="c.options.image_field" class="pull-left m-r"
+                ng-class="{'avatar': c.options.rounded_images, 'thumb-sm': c.options.rounded_images}">
+            <img ng-src="{{item.image_field}}" alt="..." class="img-sm" ng-class="{'img-circle': c.options.rounded_images}">
+          </span>
+          <div>
+            <div ng-switch on="item.display_field.type" ng-class="{'l-h-40': !item.secondary_fields.length}">
+              <span class="translated-html" ng-switch-when="translated_html" ng-bind-html="item.display_field.value"></span>
+              <div class="col-xs-3 col-md-3 col-lg-3 col-xl-3" ng-switch-default>{{item.display_field.display_value}}</div>
+              <div class="col-xs-4 col-md-4 col-lg-4 col-xl-4" ng-switch-default>{{item.scenario_instance_description.display_value}}</div>
+              <div class="col-xs-1 col-md-1 col-lg-1 col-xl-1" ng-switch-default>
+                <img ng-if="item.scenario_attachment != ''" ng-src={{item.scenario_attachment}} alt="..." class="scenario-thumbnail" ng-class="{'img-circle': c.options.rounded_images}">
+              </div>
+
+            </div>
+            <small class="text-muted" ng-repeat="f in item.secondary_fields">
+              <span ng-if="!$first"><br/></span>
+              <span ng-switch="f.type" title="{{::f.label}}">
+                <span ng-switch-when="glide_date">
+                  <span ng-if="!f.isFuture"> <sn-day-ago date="::f.value" /> </span>
+                  <span ng-if="f.isFuture"> {{f.display_value}}</span>
+                </span>
+                <span ng-switch-when="glide_date_time">
+                  <span ng-if="!f.isFuture"> <sn-time-ago timestamp="::f.value" /></span>
+                  <span ng-if="f.isFuture"> {{f.display_value}}</span>
+                </span>
+                <span ng-switch-default="">{{f.display_value}}</span>
+              </span>
+            </small>
+          </div>
+          <span ng-if="item.last_execution != ''" class="badge badge-primary">{{item.last_execution}}</span>
+          <button class="btn btn-default btn-tailor" ng-click="c.editItem(item)">
+            <i class="icon-cog-changes"></i> Tailor
+          </button>
+        </div>
+        <div ng-if="c.options.table == c.loaders && item.state != 'Pending'" class="col-xs-9 col-md-9 col-lg-9 col-xl-9">
+          <div class="col-xs-2 col-md-2 col-lg-2 col-xl-2 text-center">
+            {{$index + 1}}
+          </div>
+          <div class="col-xs-10 col-md-10 col-lg-10 col-xl-10">
+            <span ng-repeat="action in c.data.actions" href="" ng-click="c.onClick($event, item, action.url, action)" ng-if="action.glyph"
+                  class="list-action l-h-40 pull-right">
+              <fa name="{{action.glyph}}" ng-class="c.getActionColor(action)" />
+            </span>
+            <span ng-if="c.options.image_field" class="pull-left m-r"
+                  ng-class="{'avatar': c.options.rounded_images, 'thumb-sm': c.options.rounded_images}">
+              <img ng-src="{{item.image_field}}" alt="..." class="img-sm" ng-class="{'img-circle': c.options.rounded_images}">
+            </span>
+            <div>
+              <div ng-switch on="item.display_field.type" ng-class="{'l-h-40': !item.secondary_fields.length}">
+                <span class="translated-html" ng-switch-when="translated_html" ng-bind-html="item.display_field.value"></span>
+                <div ng-switch-default>
+                  <a ng-href="/nav_to.do?uri=x_snc_dh_app_load_load_experience.do?sys_id={{item.display_field.value}}" target="_blank">
+                    {{item.display_field.display_value}} <i class="fa fa-external-link" aria-hidden="true"></i>
+                  </a>
+                </div>
+              </div>
+              <small class="text-muted" ng-repeat="f in item.secondary_fields">
+                <span ng-if="!$first"><br/></span>
+                <span ng-switch="f.type" title="{{::f.label}}">
+                  <span ng-switch-when="glide_date">
+                    <span ng-if="!f.isFuture"> <sn-day-ago date="::f.value" /> </span>
+                    <span ng-if="f.isFuture"> {{f.display_value}}</span>
+                  </span>
+                  <span ng-switch-when="glide_date_time">
+                    <span ng-if="!f.isFuture"> <sn-time-ago timestamp="::f.value" /></span>
+                    <span ng-if="f.isFuture"> {{f.display_value}}</span>
+                  </span>
+                  <span ng-switch-default="">{{f.display_value}}</span>
+                </span>
+              </small>
+            </div>
+            <span ng-if="item.loader_executed" class="badge badge-primary">Executed on {{item.date}}</span>
+          </div>
+        </div>
+        <div ng-if="c.options.table == c.scenarios && item.display_field.display_value == ''" class="col-xs-10 col-md-10 col-lg-10 col-xl-10">
+          <div>
+            <div class="col-xs-10 col-md-10 col-lg-10 col-xl-10">
+              <div class="col-xs-2 col-md-2 col-lg-2 col-xl-2 text-center">
+                {{$index + 1}}
+              </div>
+              <div class="col-xs-10 col-md-10 col-lg-10 col-xl-10">
+                &nbsp;&nbsp;Scenario is Pending
+              </div>
+            </div>
+          </div>
+        </div>
+        <div ng-if="c.options.table == c.loaders && item.state == 'Pending'" class="col-xs-10 col-md-10 col-lg-10 col-xl-10">
+          <div>
+            <div class="col-xs-10 col-md-10 col-lg-10 col-xl-10">
+              <div class="col-xs-2 col-md-2 col-lg-2 col-xl-2 text-center">
+                {{$index + 1}}
+              </div>
+              <div class="col-xs-10 col-md-10 col-lg-10 col-xl-100">
+                &nbsp;&nbsp;Loader is Pending
+              </div>
+            </div>
+          </div>
+        </div>
+        <div ng-class="c.options.table == c.loaders? 'col-xs-3 col-md-3 col-lg-3 col-xl-3':'col-xs-2 col-md-2 col-lg-2 col-xl-2'">
+          <button ng-disabled="dataIsLoading" ng-if="(c.options.table == c.scenarios || c.options.table == c.loaders) && item.display_field.display_value != ''" class="btn btn-default" ng-click="c.onClick(item)">
+            <span ng-if="c.options.table == c.scenarios" ><i class="icon-cog-changes"></i> Tailor</span>
+            <span ng-if="c.options.table == c.loaders" >
+              <span ng-if="!dataIsLoading || dataIsLoading && (c.executingLoad != item.display_field.value)"><i class="icon-cog-changes"></i> Load</span>
+              <span ng-if="dataIsLoading && (c.executingLoad == item.display_field.value)">Loading <span class="fa fa-circle-o-notch fa-spin"></span></span>
+            </span>
+          </button>
+          
+          <!-- Manual Run Button -->
+          <button ng-disabled="dataIsLoading" ng-if="c.options.table == c.loaders && item.display_field.display_value != ''" class="btn btn-default" ng-click="c.confirmManualRun(item)">
+            <span ng-if="c.options.table == c.loaders" >
+              <span ng-if="!dataIsLoading || dataIsLoading && (c.executingLoad != item.display_field.value)"><i class="icon-cog-changes"></i> Tally</span>
+              <span ng-if="dataIsLoading && (c.executingLoad == item.display_field.value)">Tallying <span class="fa fa-circle-o-notch fa-spin"></span></span>
+            </span>
+          </button>
+          
+          <button ng-disabled="isApplying == true" ng-if="c.options.table == c.scenarioInstances" class="btn btn-default" ng-click="c.applyTailor(item)">
+            <span ng-if="c.data.executed_tailor != item.sys_id" ><i class="icon-download"></i> Apply</span>
+            <span ng-if="c.data.executed_tailor == item.sys_id && isApplying != true"><i class="icon-download"></i> Reapply</span>
+            <span ng-if="c.data.executed_tailor == item.sys_id && isApplying == true">Applying... <span class="fa fa-circle-o-notch fa-spin"></span></span>
+          </button>
+        </div>
+      </div>
+    </li>
+  </ul>
+  <div ng-if="!c.data.list.length" class="list-group-item">
+    ${No records found}
+  </div>
+  <div class="panel-footer" ng-if="!c.options.hide_footer && c.options.maximum_entries && c.data.count > c.options.maximum_entries">
+    <div class="h4 number-shown-label">{{c.getMaxShownLabel(c.options.maximum_entries, c.data.count)}}</div>
+    <a class="pull-right" ng-href="?id={{c.seeAllPage}}&table={{c.options.table}}&filter={{c.options.filter}}{{c.targetPageID}}" aria-label="{{::data.viewAllMsg}} - {{::c.options.title}}">${View all}</a>
+  </div>
+</div>
+<div ng-if="c.catalogOpen">
+  <sp-widget widget="c.scenarioCatalogItemWidget"></sp-widget>
+</div>]]></template>
+    </sp_widget>
+</record_update>

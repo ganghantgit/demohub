@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_scope_privilege">
+    <sys_scope_privilege action="INSERT_OR_UPDATE">
+        <operation>read</operation>
+        <source_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</source_scope>
+        <status>allowed</status>
+        <sys_class_name>sys_scope_privilege</sys_class_name>
+        <sys_created_by>kevin.moreno</sys_created_by>
+        <sys_created_on>2020-11-17 19:52:59</sys_created_on>
+        <sys_id>1d39bc69db6820907c47be6139961930</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>x_snc_dh_app_setup_narrative_variables_instances</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sys_scope_privilege_1d39bc69db6820907c47be6139961930</sys_update_name>
+        <sys_updated_by>kevin.moreno</sys_updated_by>
+        <sys_updated_on>2020-11-17 19:52:59</sys_updated_on>
+        <target_name>x_snc_dh_app_setup_narrative_variables_instances</target_name>
+        <target_scope display_value="DemoHub App Scenarios">8c2295281b4c2050465a3267cc4bcb90</target_scope>
+        <target_type>sys_db_object</target_type>
+    </sys_scope_privilege>
+</record_update>

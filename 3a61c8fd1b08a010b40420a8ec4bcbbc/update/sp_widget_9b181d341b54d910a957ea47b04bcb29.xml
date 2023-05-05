@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller=function(spModal, $scope, spUtil, $location, $uibModal, $window) {
+	/* widget controller */
+	var c = this;
+	var narrative_record =  c.options.shared;
+  c.rating_value = narrative_record.rating_value;
+  c.rating_sent = narrative_record.rating_sent;
+  c.narrSysId = c.options.shared.sys_id;
+
+  c.server.get({
+		action: 'load',
+		data: narrative_record
+	}).then(function(resp){
+        c.rating_record= resp.data.rating_record;
+    });
+	
+	c.submitRatingRecord = submitRatingRecord;
+	c.updateRating = updateRating;
+	c.updateRatingRecord = updateRatingRecord;
+	
+	function updateRating(rating_star_value ,event) {
+        c.rating_value = rating_star_value;
+  }
+	
+	function submitRatingRecord() {
+		if((c.rating_record.feedback == undefined || c.rating_record.feedback == '') && c.rating_value <= 3){
+			spUtil.addErrorMessage("Please fill all the required fields");
+		}else if (c.rating_value == 0) {
+			spUtil.addErrorMessage("Please fill all the required fields");
+		}else{ 
+			c.rating_record.rating_value = c.rating_value;
+			c.rating_record.narrative_sys_id = c.narrSysId;
+			c.rating_sent =false;
+			narrative_record.rating_value = c.rating_value;
+			narrative_record.submitted = true;
+			narrative_record.updated = false;
+			c.server.get({
+				action: 'create',
+				data: c.rating_record
+			}).then(function(response) {
+				//response of server
+				if(response.data.result != true){
+					spUtil.addErrorMessage(response.data.result);
+					narrative_record.rating_value = 0;
+					c.rating_value = narrative_record.rating_value;
+				}else{
+					spUtil.addInfoMessage("Your rating has been saved");
+				}
+				$scope.$parent.$parent.$dismiss();
+			});
+		}
+	}
+	
+	function updateRatingRecord(){
+		if((c.rating_record.feedback == undefined || c.rating_record.feedback == '') && c.rating_value <= 3){
+			spUtil.addErrorMessage("Please fill all the required fields");
+		}else if (c.rating_value == 0) {
+			spUtil.addErrorMessage("Please fill all the required fields");
+		}else{ 
+			c.rating_record.rating_value = c.rating_value;
+			c.rating_record.narrative_sys_id = c.narrSysId;
+			narrative_record.rating_value = c.rating_value;
+			narrative_record.updated = true;
+			narrative_record.submitted = false;
+			c.server.get({
+				action: 'update',
+				data: c.rating_record
+			}).then(function(response) {
+				//response of server
+				spUtil.addInfoMessage("Your rating has been updated");
+				$scope.$parent.$parent.$dismiss();
+			});
+		}
+	}
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.form-control{
+ border-radius: 4px !important;
+  color: $color-brand-dark;
+}
+.rating{
+  float: left;
+  margin-right: 8px;
+  direction: rtl;
+  
+}
+.ng-isolate-scope {
+    outline: none;
+    border: none;
+    box-shadow: none;
+}
+.fa{
+ font-size: 1.5rem;  
+}
+.fa-star{
+   color: $color-brand-suplementary-orange;
+}
+
+.py-1{
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.move-right{
+  float: right;
+  margin-top: 30px;
+}
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>demohub_narrative_rating_modal</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>Narrative Rating Modal</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+	/* populate the 'data' object */
+	/* e.g., data.table = $sp.getValue('table'); */
+	var NR = new x_snc_dh_telemetry.NarrativeRatingTelemetry();
+
+	if (input && input.action === 'create') {
+		data.result = NR.insertNarrRating(input.data.narrative_sys_id,input.data.rating_value,input.data.feedback,input.data.user_email);
+		return data.result;
+	} else if (input && input.action === 'update') {
+		gs.info('[testing]: update' + JSON.stringify(input));
+		data.result = NR.updateRatingRecord(input.data.narrative_sys_id,input.data.rating_value,input.data.feedback,input.data.user_email);
+		return data.result;
+	} else if (input && input.action === 'load') {
+		data.rating_record =  NR.getNarrRating(input.data.sys_id);
+	}
+
+
+	
+	
+  
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>enrique.castro</sys_created_by>
+        <sys_created_on>2022-06-22 16:36:49</sys_created_on>
+        <sys_id>9b181d341b54d910a957ea47b04bcb29</sys_id>
+        <sys_mod_count>199</sys_mod_count>
+        <sys_name>Narrative Rating Modal</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_widget_9b181d341b54d910a957ea47b04bcb29</sys_update_name>
+        <sys_updated_by>enrique.castro</sys_updated_by>
+        <sys_updated_on>2022-09-15 17:38:54</sys_updated_on>
+        <template><![CDATA[<div>
+  <!-- your widget template -->
+  <form>
+    <div class="py-1">
+      <label for="rating">Rate Narrative:  
+        <uib-rating ng-model="(c.rating_value)" max="5" state-on="'fa fa-star'" state-off="'fa fa-star-o'" aria-labelledby="custom-icons-1" ng-click="updateRating(c.rating_value,$event)"></uib-rating>
+      </label>
+    </div>
+    <div  ng-if="(c.rating_value == 0)">
+      <span class="text-danger">* Please enter a valid rating.</span>
+    </div>
+    <div class="form-group">
+      <label for="comments">Do you have any additional comments? </label>
+      <textarea class="form-control" name="comments" cols="40" rows="5"  ng-model="c.rating_record.feedback"></textarea>
+      <span class="text-danger" ng-if="(c.rating_value <= 3) && (c.rating_record.feedback == undefined || c.rating_record.feedback == '')">* Please enter your comments.</span>
+    </div>
+    <div class="form-group">
+      <label for="InputEmail1">Would you be willing to talk to us about your review? (Optional)</label>
+      <input type="email" class="form-control" id="InputEmail1" aria-describedby="emailHelp" placeholder="example@email.com" ng-model="c.rating_record.user_email">
+    </div>
+    <button ng-if="(c.rating_sent) == false" type="submit" class="btn btn-default move-right" ng-click="c.updateRatingRecord()">Update</button>
+    <button ng-if="(c.rating_sent) == true" type="submit" class="btn btn-default move-right"ng-click="c.submitRatingRecord()">Submit</button>
+  </form>
+</div>]]></template>
+    </sp_widget>
+</record_update>

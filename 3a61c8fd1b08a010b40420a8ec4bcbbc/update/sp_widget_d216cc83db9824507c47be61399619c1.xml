@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller=function(spUtil, $scope) {
+  /* widget controller */
+  var c = this;
+	
+	c.$onInit = function() {
+		  getNarrativeConfig(narrSysId);
+	};	
+	
+	var narrSysId = c.options.shared.sys_id;
+	
+	c.isLoading = false;
+	c.isInstalling = false;
+	
+	c.narrConfig = c.narrConfig || {};
+	c.narrConfigInstalling = c.narrConfigInstalling || [];
+	c.installConfig = installConfig;
+	c.activeTab = c.options.shared.currentTarget.dataset.tab ? c.options.shared.currentTarget.dataset.tab : 'default';
+	
+	function getNarrativeConfig(sysId) {
+			c.isLoading = true;
+		
+			c.server.get({
+					action: 'getNarrativeConfig',
+					sys_id: sysId
+			}).then(function(response) {
+				 c.narrConfig = response.data.narrative_config;
+				 
+				 if (c.isInstalling) {
+					 c.isInstalling = !response.data.narrative_config.complete;
+				 }
+
+				 c.isLoading = false;
+			});		
+	}
+	
+	function installConfig () {
+		var confirmMsg = 'Please confirm installation. Press OK to continue.';
+		var result = confirm(confirmMsg);
+		
+		if (result) {
+			c.isInstalling = true;			
+			var configArr = getSysId(c.narrConfig.configuration_array, 'sys_id');
+						
+			c.server.get({
+				action: 'addConfig',
+				array: configArr
+			}).then(function(response) {				
+				var watchFilterInstalled = 'sys_idIN' + configArr.join() + '^state=Installed';
+				c.narrConfigInstalling = response.$$uiNotification; // show installing configs
+				
+				spUtil.recordWatch($scope, 'x_snc_demohub_app_configuration', watchFilterInstalled, function(response) {
+					c.isInstalling = false; // hide currently installing configs
+					c.isLoading = false;
+					c.narrConfig.complete = true;
+				});			
+			})
+		} else {
+			c.isInstalling = false;
+		}
+	}
+	
+	function getSysId(array, key) {
+		return array.map(function(obj) {
+			return obj[key]
+		})
+	}
+	
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>button.btn.btn-default.config-install {&#13;
+  width: 100%;&#13;
+  background: $color-brand-dark;&#13;
+  color: white;&#13;
+}&#13;
+&#13;
+.narrative-modal .content+div .fa.fa-cloud-download {&#13;
+  margin-right: 0.125rem;&#13;
+  color: darkgrey;&#13;
+}&#13;
+&#13;
+.narrative-modal .content+div .fa.fa-circle-o-notch {&#13;
+  font-size: 1rem;&#13;
+}&#13;
+&#13;
+.narrative-modal .content .info-container .glyphicon.glyphicon-time {&#13;
+  margin-right: 0.25rem;&#13;
+}&#13;
+&#13;
+// dependencies loading &#13;
+.ellipsis-loading span {&#13;
+opacity: 0;&#13;
+-webkit-animation: ellipsis-dot 1s infinite;&#13;
+animation: ellipsis-dot 1s infinite;&#13;
+&#13;
+}&#13;
+.ellipsis-loading span:nth-child(1) {&#13;
+  -webkit-animation-delay: 0.0s;&#13;
+  animation-delay: 0.0s;&#13;
+}&#13;
+.ellipsis-loading span:nth-child(2) {&#13;
+  -webkit-animation-delay: 0.1s;&#13;
+  animation-delay: 0.1s;&#13;
+}&#13;
+.ellipsis-loading span:nth-child(3) {&#13;
+  -webkit-animation-delay: 0.2s;&#13;
+  animation-delay: 0.2s;&#13;
+}&#13;
+@-webkit-keyframes ellipsis-dot {&#13;
+  0% {&#13;
+    opacity: 0;&#13;
+  }&#13;
+  &#13;
+  50% {&#13;
+    opacity: 1;&#13;
+  }&#13;
+  &#13;
+  100% {&#13;
+    opacity: 0;&#13;
+  }&#13;
+}&#13;
+@keyframes ellipsis-dot {&#13;
+  0% {&#13;
+    opacity: 0;&#13;
+  }&#13;
+  &#13;
+  50% {&#13;
+    opacity: 1;&#13;
+  }&#13;
+  &#13;
+  100% {&#13;
+    opacity: 0;&#13;
+  }&#13;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>demohub_app_guided_step2</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>DemoHub App Guided Step2</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+  /* populate the 'data' object */
+  /* e.g., data.table = $sp.getValue('table'); */
+	
+	if (input && input.action === 'getNarrativeConfig') {
+		var sysId = input.sys_id;
+		data.narrative_config = new x_snc_demohub_app.find().getStep2ModalInfo(sysId);
+		
+	} else if (input && input.action === 'addConfig') {
+		var configArr = input.array;
+		gs.info('server script add config: ' + configArr);
+		data.config_state = new x_snc_demohub_app.installQueue().addConfigurationArray(configArr);
+	}
+	
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-11-09 21:44:52</sys_created_on>
+        <sys_id>d216cc83db9824507c47be61399619c1</sys_id>
+        <sys_mod_count>265</sys_mod_count>
+        <sys_name>DemoHub App Guided Step2</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_widget_d216cc83db9824507c47be61399619c1</sys_update_name>
+        <sys_updated_by>enrique.castro</sys_updated_by>
+        <sys_updated_on>2022-02-03 19:31:04</sys_updated_on>
+        <template><![CDATA[<section class="narrative-modal">  
+	<uib-tabset active="active">
+    <uib-tab index="0"
+             active="::c.activeTab === 'default'"
+             heading="Install">
+      <div class="content">
+        <div class="info-container">
+          <ul class="list-group">
+            <li ng-show="!c.narrConfig.complete" 
+                class="list-group-item"
+                ng-class="{ 'alarm-red': !c.narrConfig.state === 'Pending' }">
+              <label>Ready to Install</label>
+              {{ ::c.narrConfig.state ? "Yes" : "No" }}
+            </li> 
+            <li class="list-group-item">
+              <label>Installed Configurations</label>
+              {{ ::c.narrConfig.installedConfigs }} / {{ ::c.narrConfig.totalConfigs }}
+            </li>
+            <li class="list-group-item">
+              <label><span class="glyphicon glyphicon-time"
+                           uib-tooltip="Estimated Time Remaining"></span>Remaining</label>  
+              {{ ::c.narrConfig.estimated_install_time }} 
+            </li>
+            <li class="list-group-item">
+              <label>Current Install Queue</label>
+              {{ ::c.narrConfig.install_queue }}
+            </li>
+            <li class="list-group-item">
+							<button ng-disabled="c.narrConfig.complete || 
+                                   c.isInstalling || 
+                                   !c.narrConfig.totalConfigs || 
+                                   c.isLoading || 
+                                   c.narrConfig.state === 'Pending' "
+                      ng-click="c.installConfig()"
+                      class="btn btn-default config-install">
+                <i ng-show='!c.isLoading && !c.narrConfig.complete && c.narrConfig.totalConfigs'
+                   class="fa fa-cloud-download" 
+                   aria-hidden="true"></i>
+                {{ c.isLoading ? 'Loading...' :
+                  (	c.narrConfig.complete ) ? 'Completed' :
+                	( !c.narrConfig.totalConfigs ) ? 'Nothing to Install' : 'Install' }}<span ng-show="c.isInstalling">ing...
+                <i class="fa fa-circle-o-notch fa-spin btn-loader"></i></span>
+              </button>
+            </li>
+          </ul>         
+        </div>
+        <p>This step will install the needed Plugins, Store Applications, Update Sets, .XMLs, and Scripts.</p>
+        <p>A total of {{ c.narrConfig.totalConfigs }} configuration item(s) is associated with this narrative, of which {{ c.narrConfig.installedConfigs }} have been installed.</p>
+        <p>There are currently {{ c.narrConfig.install_queue }} item(s) in the install queue with an estimated install time of {{c.narrConfig.estimated_install_time }}.</p>
+        
+        <p><i><sup>*</sup>New patches will not auto install and will just return this step to incomplete.</i></p>
+      </div><!-- end content -->
+      
+      <div ng-show="c.isInstalling">
+        <p>The installation of configuration item(s) has started.</p>
+        Installing dependecies<span class="ellipsis-loading">
+        <span>.</span><span>.</span><span>.</span></span>
+        <ul class="list-group">
+          <li ng-repeat="item in c.narrConfigInstalling"
+              class="list-group-item">
+          	<i class="fa fa-circle-o-notch fa-spin"></i>
+            {{ item.message }}
+          </li>          
+        </ul>
+      </div>
+   
+      <div class="clearfix"></div>
+    </uib-tab>
+    <uib-tab index="1"
+             active="::c.activeTab === 'details'"
+             ng-if="::c.narrConfig.configuration_array.length">
+      <uib-tab-heading class="attachment">
+        Details ({{ ::c.narrConfig.configuration_array.length }})
+      </uib-tab-heading>      
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+            	<th>#</th>
+              <th>Title</th>
+              <th>Estimated Install <span class="glyphicon glyphicon-time"
+                                          uib-tooltip="Estimated Installation Time"></span></th>
+              <th>State</th>
+              <th>Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="item in c.narrConfig.configuration_array">
+              <td class="col-xs-1">{{ $index + 1}}</td>
+              <td class="col-xs-6">
+                <a uib-tooltip="{{ item.title }}"
+                   ng-href="/nav_to.do?uri=x_snc_demohub_app_configuration.do?sys_id= {{ item.sys_id }}"
+                   target="_blank">{{ ::item.title | limitTo: 40 }}
+                  {{ ::item.title.length > 40 ? '...' : '' }}
+                <i class="fa fa-external-link" 
+                   aria-hidden="true"></i></a></td>
+              <td class="col-xs-3">{{ ::item.estimated_install_time }}</td>
+              <td class="col-xs-2">{{ ::item.state }}</td>
+              <td class="col-xs-2">{{ ::item.updated }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </uib-tab>
+    <uib-tab ng-if="::c.narrConfig.additional_instructions"
+             active="::c.activeTab === 'manualSteps'"
+             index="2">
+      <uib-tab-heading>
+        Manual Steps<i class="fa fa-wrench"></i>
+      </uib-tab-heading>
+      <div class="content">
+        <narrative-manual-steps data="c.narrConfig.additional_instructions"></narrative-manual-steps>
+      </div>     
+    </uib-tab>  
+  </uib-tabset>  
+</section>
+]]></template>
+    </sp_widget>
+</record_update>

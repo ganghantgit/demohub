@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_ng_template">
+    <sp_ng_template action="INSERT_OR_UPDATE">
+        <id>advSearchTemplate.html</id>
+        <sp_widget display_value="DemoHub App Find Keyword">ae85c9badb28a4907c47be6139961940</sp_widget>
+        <sys_class_name>sp_ng_template</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-12-11 00:59:00</sys_created_on>
+        <sys_id>7ebb1445db8d2010a5d284cc29961923</sys_id>
+        <sys_mod_count>106</sys_mod_count>
+        <sys_name>advSearchTemplate.html</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_ng_template_7ebb1445db8d2010a5d284cc29961923</sys_update_name>
+        <sys_updated_by>natalia.marrufo</sys_updated_by>
+        <sys_updated_on>2022-10-05 17:22:21</sys_updated_on>
+        <template><![CDATA[<div class="row advanced-option"
+     ng-if="c.isAdvSearchOpen">
+  <div class="dropdown container"><!-- start drop downs-->
+    <div class="btn-group" 
+         uib-dropdown 
+         keyboard-nav>
+      <button id="gsfVersion" 
+              type="button" 
+              class="btn btn-outline-secondary" 
+              uib-dropdown-toggle>
+        GSF Version: <span>{{ c.selected.gsfVersion }}</span>
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu form-check"
+          uib-dropdown-menu 
+          role="menu">
+        <li role="menuitem" 
+            ng-repeat="gsfVersion in c.advSearch.dropDown.gsfVersion">
+          <input class="form-check-input" 
+                 type="radio"
+                 id="gsfVersion-{{ $index }}"
+                 ng-model="c.selected.gsfVersion"
+                 ng-if="gsfVersion"
+                 value="{{ gsfVersion }}"
+                 ng-init="c.selected.gsfVersion='Any'"
+                 ng-change="c.onSearchNarrative()"> 
+          <label class="form-check-label"
+                 ng-if="gsfVersion"
+                 for="gsfVersion-{{ $index }}">
+            {{ gsfVersion }}
+          </label>              
+        </li>
+      </ul>
+    </div> 
+    <div class="btn-group" 
+         uib-dropdown 
+         keyboard-nav>
+      <button id="installed" 
+              type="button" 
+              class="btn btn-outline-secondary" 
+              uib-dropdown-toggle>
+        Installed: <span>{{ c.selected.installed }}</span>
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu form-check"
+          uib-dropdown-menu 
+          role="menu">
+        <li role="menuitem" 
+            ng-repeat="installed in c.advSearch.dropDown.installed">
+          <input class="form-check-input" 
+                 type="radio"
+                 id="installed-{{ $index }}"
+                 ng-model="c.selected.installed"
+                 ng-if="installed"
+                 value="{{ installed }}"
+                 ng-init="c.selected.installed='Any'"
+                 ng-change="c.onSearchNarrative()"> 
+          <label class="form-check-label"
+                 ng-if="installed"
+                 for="installed-{{ $index }}">
+            {{ installed }}
+          </label>              
+        </li>
+      </ul>
+    </div>
+    <div class="btn-group" 
+         uib-dropdown 
+         keyboard-nav>
+      <button id="lastUpdated" 
+              type="button" 
+              class="btn btn-outline-primary" 
+              uib-dropdown-toggle>
+        Last Updated: <span>{{ c.selected.lastUpdated }}</span>
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu form-check"
+          uib-dropdown-menu 
+          role="menu">
+        <li role="menuitem" 
+            ng-repeat="update in c.advSearch.dropDown.lastUpdated track by $index">
+          <input class="form-check-input" 
+                 type="radio"
+                 id="update-{{ $index }}"
+                 ng-model="c.selected.lastUpdated"
+                 ng-if="update"
+                 value="{{ update }}"
+                 ng-init="c.selected.lastUpdated='Any'"
+                 ng-change="c.onSearchNarrative()"> 
+          <label class="form-check-label"
+                 ng-if="update"
+                 for="update-{{ $index }}">
+            {{ update }}
+          </label>              
+        </li>
+      </ul>
+    </div>
+    <div class="btn-group" 
+         uib-dropdown 
+         keyboard-nav>
+      <button id="demoDuration" 
+              type="button" 
+              class="btn btn-outline-secondary" 
+              uib-dropdown-toggle>
+        Demo Duration: <span>{{ c.selected.demoDuration }}</span>
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu form-check"
+          uib-dropdown-menu 
+          role="menu">
+        <li role="menuitem" 
+            ng-repeat="demo in c.advSearch.dropDown.demoDuration">
+          <input class="form-check-input" 
+                 type="radio"
+                 id="duration-{{ $index }}"
+                 ng-model="c.selected.demoDuration"
+                 ng-if="demo"
+                 value="{{ demo }}"
+                 ng-init="c.selected.demoDuration='Any'"
+                 ng-change="c.onSearchNarrative()"> 
+          <label class="form-check-label"
+                 ng-if="demo"
+                 for="duration-{{ $index }}">
+            {{ demo }}
+          </label>              
+        </li>
+      </ul>
+    </div>
+    <div class="btn-group" 
+         uib-dropdown 
+         keyboard-nav>
+      <button id="briefed" 
+              type="button" 
+              class="btn btn-outline-secondary" 
+              uib-dropdown-toggle>
+        Briefed: <span>{{ c.selected.briefed }}</span>
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu form-check"
+          uib-dropdown-menu 
+          role="menu">
+        <li role="menuitem" 
+            ng-repeat="briefed in c.advSearch.dropDown.briefed">
+          <input class="form-check-input" 
+                 type="radio"
+                 id="briefed-{{ $index }}"
+                 ng-model="c.selected.briefed"
+                 ng-if="briefed"
+                 value="{{ briefed }}"
+                 ng-init="c.selected.briefed='Any'"
+                 ng-change="c.onSearchNarrative()"> 
+          <label class="form-check-label"
+                 ng-if="briefed"
+                 for="briefed-{{ $index }}">
+            {{ briefed }}
+          </label>              
+        </li>
+      </ul>
+    </div>
+  </div><!-- end drop downs -->
+
+  <div class="checkbox container fade-element">
+    <div class="col-sm-3 col-xs-3 form-check">
+      <h5>
+        Select Industry
+        <span>
+          <i ng-show="c.isAdvOptionLoading"
+             class="fa fa-circle-o-notch fa-spin"></i>
+        </span>
+      </h5>      
+      <div class="form-check"
+           ng-repeat="industry in c.advSearch.checkBox.industry">
+        <input class="form-check-input" 
+               type="checkbox"
+               id="industry-{{ industry }}"
+               ng-model="c.selected.industry[$index]"
+               ng-if="industry"
+               ng-change="c.toggleCategory('industry', $index)"
+               value="{{ industry }}"> 
+        <label class="form-check-label"
+               ng-if="industry"
+               for="industry-{{ industry }}">
+          {{ industry }}
+        </label>
+      </div>
+      <div ng-show="!c.advSearch.checkBox.industry.length">
+        <p>Sorry, no matching industry</p>
+      </div>
+    </div>              
+    <div class="col-sm-3 col-xs-3 form-check">
+      <h5>
+        Select Skill Level
+        <sup><i class="icon-view"
+                uib-tooltip="Level of product knowledge required to successfully deliver the demo" 
+                tooltip-placement="bottom"></i></sup>
+        <span>
+          <i ng-show="c.isAdvOptionLoading"
+             class="fa fa-circle-o-notch fa-spin"></i>
+        </span>
+      </h5>
+      <div class="form-check" 
+           ng-repeat="level in c.advSearch.checkBox.skillLevel">
+        <input class="form-check-input" 
+               type="checkbox"
+               id="level-{{ level }}"
+               ng-model="c.selected.skillLevel[$index]"
+               ng-change="c.toggleCategory('skillLevel', $index)"
+               ng-if="level"
+               value="{{ level }}"> 
+        <label class="form-check-label"
+               ng-if="level"
+               for="type-{{ level }}">
+          {{ level }}
+        </label>
+      </div> 
+      <div ng-show="!c.advSearch.checkBox.skillLevel.length">
+        <p>Sorry, no matching skill level</p>
+      </div>
+    </div>    
+    <div class="col-sm-3 col-xs-3 form-check">
+      <h5>
+        Select Product Portfolio        
+        <span>
+          <i ng-show="c.isAdvOptionLoading"
+             class="fa fa-circle-o-notch fa-spin"></i>
+        </span>
+      </h5>
+      <icon ng-show="c.advSearch.checkBox.gsfProductPortfolio.length > 6"
+            class="icon-arrow-down"></icon>
+      <div class="form-check" 
+           ng-repeat="unit in c.advSearch.checkBox.gsfProductPortfolio">
+        <input class="form-check-input" 
+               type="checkbox" 
+               id="unit-{{ unit }}"
+               ng-model="c.selected.gsfProductPortfolio[$index]"
+               ng-change="c.toggleCategory('gsfProductPortfolio', $index)"
+               ng-if="unit"
+               value="{{ unit }}"> 
+        <label class="form-check-label"
+               ng-if="unit"
+               for="unit-{{ unit }}">
+          {{ unit }}
+        </label>
+      </div>
+      <div ng-show="!c.advSearch.checkBox.gsfProductPortfolio.length">
+        <p>Sorry, no matching Product Portfolio</p>
+      </div>      
+    </div>
+    <div class="col-sm-3 col-xs-3 form-check">
+      <h5>
+        Select Platform Features
+        <span>
+          <i ng-show="c.isAdvOptionLoading"
+             class="fa fa-circle-o-notch fa-spin"></i>
+        </span>
+      </h5>
+      <icon ng-show="c.advSearch.checkBox.platformFeaturesAvailable.length > 6"
+            class="icon-arrow-down"></icon>
+      <div class="form-check" 
+           ng-repeat="platfeat in c.advSearch.checkBox.platformFeaturesAvailable">
+        <input class="form-check-input" 
+               type="checkbox" 
+               id="platfeat-{{ platfeat }}"
+               ng-model="c.selected.platformFeaturesAvailable[$index]"
+               ng-change="c.toggleCategory('platformFeaturesAvailable', $index)"
+               ng-if="platfeat"
+               value="{{ platfeat }}"> 
+        <label class="form-check-label"
+               ng-if="platfeat"
+               for="platfeat-{{ platfeat }}">
+          {{ platfeat }}
+        </label>
+      </div>
+      <div ng-show="!c.advSearch.checkBox.gsfProductPortfolio.length">
+        <p>Sorry, no matching Product Portfolio</p>
+      </div>      
+    </div>
+  </div><!-- end container -->  
+</div><!-- adv search option --> ]]></template>
+    </sp_ng_template>
+</record_update>

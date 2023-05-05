@@ -1,0 +1,757 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function(spEventPubSub, spUtil, $scope) {
+	/* widget controller */
+	var c = this;
+	var queryFields = ['workflow', 'skillLevel', 'businessUnit', 'industry', 'gsf_version', 'gsf_category', 'gsf_imperative', 'gsf_capability',"persona"];
+	var defaultOptions = {};
+
+	c.$onInit = function() {
+		defaultOptions = angular.copy(c.data.default_option);
+
+		c.currentItem = setInitialState(queryFields, 'any');
+		c.queryFieldOpen = setInitialState(queryFields, false);
+		c.optionItems = setFilterState(queryFields, defaultOptions);
+	};
+	
+	c.isKeyworkSearch = false;
+	c.isFindBtnActive = false;
+	c.hasScrolled = false;
+	c.queryFormOpen = true;
+
+	c.queryFieldOpenToggle = queryFieldOpenToggle;
+	c.queryFieldSelect = queryFieldSelect;
+
+	c.queryFieldChangeEvent = queryFieldChangeEvent;
+	c.queryAction = queryAction;
+	c.toggleFindProcess = toggleFindProcess;
+	c.hasScrolledNotify = hasScrolledNotify;
+	c.queryFields = c.queryFields || {};
+	c.isFieldLoading = c.isFieldLoading || {};
+	c.queryFieldSelected = c.queryFieldSelected || {};
+
+	c.querySentence = {};
+	c.querySentence.start = 'For'
+	c.querySentence.intro = 'industry I need a demo from';
+	//gsf true
+	c.querySentence.workflow_category = 'category as';
+	c.querySentence.persona = "persona with";
+	c.querySentence.imperative_bu = 'imperative to show the';
+	c.querySentence.capability = 'capability with';
+	//gsf false
+	if(!c.data.gsf){
+		c.querySentence.intro = 'industry I need to demo';
+		c.querySentence.workflow_category = 'workflow for';
+		c.querySentence.imperative_bu = 'business unit with';
+		c.querySentence.capability = '';
+	}	
+	c.querySentence.skillLevel = 'skill level';
+	c.querySentence.question = 'What would you like to demo today?';
+	if(!c.data.gsf){
+		
+	}
+	/*
+	c.querySentence.start = 'For'
+	c.querySentence.intro = 'industry I need to demo';	
+	c.querySentence.workflow = 'workflow for';
+	c.querySentence.businessUnit = 'business unit with';
+	c.querySentence.skillLevel = 'skill level';
+	c.querySentence.question = 'What would you like to demo today?';
+	
+	*/
+  
+	function setFilterState(queryFields, data) {
+		return queryFields.reduce(function(obj, key) {
+			obj[key] = data[_.snakeCase(key)];
+			return obj;
+		}, {});
+	}
+
+	function setInitialState(queryFields, state) {
+		return queryFields.reduce(function(obj, key) {
+			obj[key] = state;
+			return obj;
+		}, {});
+	}
+
+	function queryFieldOpenToggle(event) {
+		var category = event.currentTarget.parentNode.id;
+		c.queryFieldOpen[category] = queryFieldOpenToggleState(c.queryFieldOpen[category]);
+	}
+
+	function queryFieldSelect(event, value) {
+		var category = event.currentTarget.parentNode.parentNode.id;
+		c.currentItem[category] = value;
+		c.isFindBtnActive = true;
+		c.queryFieldSelected[category] = true;
+
+		if (value === 'any') {
+			c.optionItems = setFilterState(queryFields, defaultOptions);
+			c.optionItems.persona = c.data.default_option.persona;
+		} else {
+			getMatchingNarr(category, value, queryFields);
+		}
+
+		spEventPubSub.notifyEventChange(angular.copy(c.currentItem));
+		c.queryFieldOpen[category] = queryFieldOpenToggleState(c.queryFieldOpen[category]);
+	}
+
+	function queryFieldOpenToggleState(state) {
+		return state === true ? false : true;
+	}
+
+	function queryFieldChangeEvent(data) {
+		spEventPubSub.notifyEventChange(data);
+	}
+
+	function getMatchingNarr(field, value, queryFields) {
+		var currentItem = angular.copy(c.currentItem);
+		c.isFieldLoading = setLoadingState(currentItem, true);
+	
+		c.server.get({
+			action: 'narrativeDependencies',
+			field: _.snakeCase(field),
+			value: value
+		}).then(function success(response) {
+			var optionItems = angular.copy(c.optionItems);
+			var dependentOptionItems = setFilterState(queryFields, angular.copy(response.data.dependent_option));
+			var aux = setOptionItemState(field, optionItems, dependentOptionItems);
+
+			for(var i = 0; i<aux.persona.length; i++){
+			if(optionItems.persona.indexOf(aux.persona[i]) ==-1){
+					aux.persona.splice(i, 1);
+					i--;
+				}
+			}
+			c.optionItems = aux;
+			//c.optionItems = setOptionItemState(field, optionItems, dependentOptionItems);
+			c.isFieldLoading = setLoadingState(currentItem, false);	
+		}, function error(response) {
+			spUtil.addErrorMessage('Failed to add fetch dependant query fields.');
+		});
+	}
+
+	function setOptionItemState(field, optionItems, dependentOptionItems) {
+		var result = {};
+		var selected = angular.copy(c.currentItem);
+
+		for (var prop in dependentOptionItems) {
+			if (prop === field && selected[prop] !== 'any') {
+				result[prop] = optionItems[prop];
+			} else {
+				result[prop] = dependentOptionItems[prop];
+			}
+		}
+
+		return result;
+	}
+
+	function setLoadingState(currentItem, state) {
+		var fieldLoadingState = {};
+
+		for (var prop in currentItem) {
+			if (currentItem[prop] !== 'any') {
+				fieldLoadingState[prop] = false;
+			} else {
+				fieldLoadingState[prop] = state;
+			}
+		}
+
+		return fieldLoadingState;
+	}
+
+	function queryAction(event) {
+		var action = {};
+		action.event = event.target.id;
+		var data = _.extend({}, angular.copy(c.currentItem), action);
+		c.queryFieldChangeEvent(data);
+		c.isFindBtnActive = false;
+
+		if (event.target.id === 'find') {
+			toggleFindProcess();
+			c.isKeyworkSearch = false;
+			triggerFindSearchNotify(data);
+
+			if (!c.hasScrolled) {
+				c.hideMainPic();
+			} else {
+				return;
+			}
+
+		} else if (event.target.id === 'reset') {
+			c.currentItem = setInitialState(queryFields, 'any');
+			c.optionItems = setFilterState(queryFields, defaultOptions);
+			c.queryFieldSelected = setFilterState(queryFields, false);
+
+		}
+		return;
+	}
+
+	function toggleFindProcess() {
+		c.queryFormOpen = !c.queryFormOpen;
+		toggleFindProcessNotify(angular.copy(c.queryFormOpen));
+	}
+
+	function hasScrolledNotify(state) {
+		$rootScope.$broadcast('hasScrolled', state);
+	}
+
+	function toggleFindProcessNotify(state) {
+		$rootScope.$broadcast('toggleFindProcess', state);
+	}
+
+	function triggerFindSearchNotify(state) {
+		$rootScope.$broadcast('triggerFindSearch', state);
+	}
+
+	$rootScope.$on('triggeredKeywordSearch', function() {
+		c.isKeyworkSearch = true;
+		c.currentItem = setInitialState(queryFields, 'any');
+
+		if (!c.hasScrolled) {
+			c.hideMainPic();
+		} else {
+			return;
+		}
+	});
+
+	$rootScope.$on('triggeredBookmarkView', function() {
+		c.currentItem = setInitialState(queryFields, 'any');
+		c.hideMainPic();
+	});
+
+	// Start Virtual Agent Implementation
+		c.isLoading = true;
+
+		spUtil.get("demohub_app_virtual_agent", {url_parms: "sysparm_portal=dhapp"}).then(function(response) {
+			c.virtualAgent = response;
+			c.isLoading = false;
+		});
+
+		$scope.$on('intoNarrativeConfig', function(event, args) {
+			var narrative_sys_id = args.narrative_sys_id;
+			var narrative_name = args.narrative_name;
+			var action = args.action;
+
+			c.isLoading = true;
+			c.virtualAgent = "";
+
+			if(action == 'populate'){
+				spUtil.get("demohub_app_virtual_agent", {url_parms: "sysparm_portal=dhapp&sysparm_narrative_name=" + narrative_name + "&sysparm_narrative_sys_id=" + narrative_sys_id}).then(function(response) {
+					c.virtualAgent = response;
+					c.isLoading = false;
+				});
+			}else if('clean'){
+				spUtil.get("demohub_app_virtual_agent", {url_parms: "sysparm_portal=dhapp"}).then(function(response) {
+					c.virtualAgent = response;
+					c.isLoading = false;
+				});
+			}
+		});
+
+	// End Virtual Agent Implementation
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.find-process {
+  text-align: center;
+  font-size: 1rem;
+  display: flex;
+}
+
+.find-process &gt; div:first-of-type {
+  height: 12rem;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.find-process div &gt; span {
+  border-bottom: 1px solid $color-brand-dark;
+  padding: 0 0.25rem;
+  color:  $color-brand-suplementary-gray;
+}
+
+.find-process div &gt; i + span {
+  border: unset;
+}
+
+.find-process .fa.fa-caret-down {
+  font-size: 2rem;
+  color: $color-brand-suplementary-gray;
+}
+
+.find-process button {
+  width: 10rem;
+}
+
+.find-process button.active {
+  border: 2px solid $color-brand-dark;
+}
+
+.find-process .icon-view {
+  font-size: 1rem;
+}
+
+.find-process .unselectable {
+  @include font-bold;
+  color: $color-brand-dark;
+  border: unset;
+}
+
+
+
+// button
+.btn-dhapp-primary {
+  @include button-dhapp-primary;
+}
+
+// override
+// for natural language form component
+// source addeded as dependency - nlFormStyle
+
+.nl-form {
+  font-size: 2.125rem;
+}
+
+.nl-field,
+.nl-field-toggle {
+  line-height: 1em;
+}
+
+.nl-field:hover,
+a.nl-field-toggle:hover {
+  box-shadow: 1px 1px solid $color-brand-suplementary-gray;
+  border-bottom: none;
+}
+
+.nl-field ul {
+  //padding: 0.5rem 1rem;
+  cursor: pointer;
+  background-color: $color-brand-dark;
+  color: black;
+  text-align: left;
+  left: 0;
+  min-width: 15rem;
+  max-height: 30rem;
+  overflow: auto;
+  font-size: 1.5rem;
+}
+.nl-field ul li {
+   padding: 8px;
+}
+.nl-field ul li:hover {
+    color: white;
+}
+.nl-field ul li.checked {
+  color: white;
+  font-weight: bolder;
+}
+
+.nl-field .fa-circle-o-notch.fa-spin {
+  color: $color-suplementary-light-gray;
+  color: $color-brand-suplementary-gray;
+  font-size: 1rem;
+}
+
+.nl-field ul li.checked::after {
+  margin-left: 10px;
+  color: white;
+  font-weight: bolder;
+  content: "\2713";
+}
+
+.nl-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0);
+  z-index: 9999;
+  visibility: hidden;
+}
+
+/* ng animation effects */
+.fixed-top-open .nl-form.ng-enter,
+.fixed-top-open .nl-form.ng-leave {
+  transition: opacity ease-in-out 0.6s;
+}
+.fixed-top-open .nl-form.ng-enter,
+.fixed-top-open .nl-form.ng-leave.ng-leave-active {
+  opacity: 0;
+}
+.fixed-top-open .nl-form.ng-leave,
+.fixed-top-open .nl-form.ng-enter.ng-enter-active {
+  opacity: 1;
+}
+
+@media screen and (max-width: 990px) {
+  .guided-process {
+    flex-wrap: wrap;
+  }
+}
+
+/* bootstrap override */
+.tooltip-inner {
+  max-width: 350px;
+  /* If max-width does not work, try using width instead */
+  width: 350px;
+}
+
+/* updated 11/23/2020 */
+.fixed-top-closed span.selected {
+  @include font-light;
+  color: grey;
+  border: unset;
+}
+
+.fixed-top-closed span.selected span {
+  @include font-bold;
+  border-bottom: 1px solid $color-brand-dark;
+  padding-bottom: 0.125rem;
+  color: $color-brand-dark;
+}
+
+.find-process.fixed-top-closed .icon-view {
+  font-size: 0.75rem;
+  margin-left: 0.15rem;
+  color: $color-brand-dark;
+}
+
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>demohub_app_find_process</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+    var widgetSection = document.getElementsByTagName('section')[0];
+
+    scope.c.hideMainPic = function() {
+        if ($('#welcome').length) {
+            $('#welcome').slideUp('fast');
+        } else {
+            setTimeout(function() {
+                $('#welcome').slideUp('fast');
+            }, 500);
+        }
+
+        scope.c.hasScrolled = true;
+        scope.c.queryFormOpen = false;
+
+        // keyword search addition
+        scope.c.hasScrolledNotify(scope.c.hasScrolled);
+    };
+
+    $(widgetSection).scroll(function(event) {
+        if ($(this).scrollTop() > 0 && !scope.c.hasScrolled) {
+            scope.c.hasScrolled = true;
+            scope.c.queryFormOpen = false;
+
+            // keyword search
+            scope.c.hasScrolledNotify(scope.c.hasScrolled);
+            scope.$apply();
+
+            $('#welcome').slideUp();
+        } else {
+            return;
+        }
+
+        $(widgetSection).unbind('scroll'); // remove scroll event listener
+    });
+
+}]]></link>
+        <name>DemoHub App Find Process</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+    /* populate the 'data' object */
+    /* e.g., data.table = $sp.getValue('table'); */
+
+    var narrFindUtil = new DHAppNarrativeUtil();
+    var narrFields = ['workflow', 'skill_level', 'business_unit', 'industry', 'gsf_version', 'gsf_category', 'gsf_imperative', 'gsf_capability',"persona"]; // drop down fields for natural language find query
+
+    if (!input) {
+        var defaultOption = narrFindUtil.getNarrFindOptions(narrFields);
+        data.default_option = addOption(defaultOption, 'any');
+			if(data.default_option.gsf_version.length == 1){
+				data.gsf = false;
+			}else{
+				data.gsf = true;
+			}
+    }
+
+
+    if (input && input.action === 'narrativeDependencies') {
+        var dependentOption = new x_snc_demohub_app.find().narrativeDependencies(input.field, input.value);
+				data.dependent_option = addOption(dependentOption, 'any');
+    }
+
+    function addOption(obj, option) {
+        for (var prop in obj) {
+            if (Array.isArray(obj[prop])) {
+                obj[prop].push(option);
+            }
+        }
+
+        return obj;
+    }
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-10-24 15:11:52</sys_created_on>
+        <sys_id>5db298751b88a010b40420a8ec4bcb9e</sys_id>
+        <sys_mod_count>763</sys_mod_count>
+        <sys_name>DemoHub App Find Process</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_widget_5db298751b88a010b40420a8ec4bcb9e</sys_update_name>
+        <sys_updated_by>natalia.marrufo</sys_updated_by>
+        <sys_updated_on>2022-05-27 19:08:31</sys_updated_on>
+        <template><![CDATA[<section class="find-process"
+         ng-class="{ 'fixed-top-open': c.queryFormOpen && c.hasScrolled, 
+                   'fixed-top-closed': !c.queryFormOpen }">
+  <div ng-class="{ 'nl-form-min navbar navbar-default navbar-fixed-top' : 
+                 		c.hasScrolled, 'col-sm-10 col-sm-offset-1' : !c.hasScrolled }">
+    <ng-include src="'minimizedQueryFormTemplate.html'"></ng-include>
+    <div class="nl-form"
+         ng-if="c.queryFormOpen">
+      {{ ::c.querySentence.start }}
+      <div class="nl-field" 
+           id="industry"
+           ng-class="{ 'nl-field-open': c.queryFieldOpen.industry }">
+        <span ng-class="{ 'unselectable': c.queryFieldSelected.industry  }"
+              ng-click="!c.isFieldLoading.industry && 
+                        !c.queryFieldSelected.industry &&
+                        c.optionItems.industry &&
+                        c.currentItem.industry === 'any' &&
+                        c.queryFieldOpenToggle($event)">{{ c.currentItem.industry }}
+          <i ng-if="c.currentItem.industry === 'any' && 
+                    !c.queryFieldSelected.industry"
+             class="fa"
+             ng-class="c.isFieldLoading.industry ? 
+                       'fa-circle-o-notch fa-spin' : 'fa-caret-down fa-sm'" 
+             aria-hidden="true"></i>
+        </span>
+        <ul>
+          <li ng-repeat="(key, value) in c.optionItems.industry"
+              ng-if="value"
+              ng-click="c.queryFieldSelect($event, value)"
+              ng-class="{ checked: c.currentItem.industry == value }">{{ value }}</li>
+        </ul>
+      </div>
+      {{ ::c.querySentence.intro }}
+        <div class="nl-field" 
+					 ng-if="c.data.gsf == true"
+           id="gsf_category"
+           ng-class="{ 'nl-field-open': c.queryFieldOpen.gsf_category }">
+        <span ng-class="{ 'unselectable': c.queryFieldSelected.gsf_category  }"
+              ng-click="!c.isFieldLoading.gsf_category && 
+                        !c.queryFieldSelected.gsf_category &&
+                        c.optionItems.gsf_category &&
+                        c.currentItem.gsf_category === 'any' &&
+                        c.queryFieldOpenToggle($event)">{{ c.currentItem.gsf_category }}
+          <i ng-if="c.currentItem.gsf_category === 'any' && 
+                    !c.queryFieldSelected.gsf_category"
+             class="fa"
+             ng-class="c.isFieldLoading.gsf_category ? 
+                       'fa-circle-o-notch fa-spin' : 'fa-caret-down fa-sm'" 
+             aria-hidden="true"></i>
+        </span>
+        <ul>
+          <li ng-repeat="(key, value) in c.optionItems.gsf_category"
+              ng-if="value"
+              ng-click="c.queryFieldSelect($event, value)"
+              ng-class="{ checked: c.currentItem.gsf_category == value }">{{ value }}</li>
+        </ul>
+      </div>
+      
+        <div class="nl-field" 
+					 ng-if="c.data.gsf == false"
+           id="workflow"
+           ng-class="{ 'nl-field-open': c.queryFieldOpen.workflow }">
+        <span ng-class="{ 'unselectable': c.queryFieldSelected.workflow  }"
+              ng-click="!c.isFieldLoading.workflow && 
+                        !c.queryFieldSelected.workflow &&
+                        c.optionItems.workflow &&
+                        c.currentItem.workflow === 'any' &&
+                        c.queryFieldOpenToggle($event)">{{ c.currentItem.workflow }}
+          <i ng-if="c.currentItem.workflow === 'any' && 
+                    !c.queryFieldSelected.workflow"
+             class="fa"
+             ng-class="c.isFieldLoading.workflow ? 
+                       'fa-circle-o-notch fa-spin' : 'fa-caret-down fa-sm'" 
+             aria-hidden="true"></i>
+        </span>
+        <ul>
+          <li ng-repeat="(key, value) in c.optionItems.workflow"
+              ng-if="value"
+              ng-click="c.queryFieldSelect($event, value)"
+              ng-class="{ checked: c.currentItem.workflow == value }">{{ value }}</li>
+        </ul>
+      </div>
+      {{ ::c.querySentence.workflow_category }}
+      <div class="nl-field" 
+           ng-if="c.data.gsf == true"
+           id="persona"
+           ng-class="{ 'nl-field-open': c.queryFieldOpen.persona }">
+        <span ng-class="{ 'unselectable': c.queryFieldSelected.persona  }"
+              ng-click="!c.isFieldLoading.persona && 
+                        !c.queryFieldSelected.persona &&
+                        c.optionItems.persona &&
+                        c.currentItem.persona === 'any' &&
+                        c.queryFieldOpenToggle($event)">{{ c.currentItem.persona }}
+          <i ng-if="c.currentItem.persona === 'any' && 
+                    !c.queryFieldSelected.persona"
+             class="fa"
+             ng-class="c.isFieldLoading.persona ? 
+                       'fa-circle-o-notch fa-spin' : 'fa-caret-down fa-sm'" 
+             aria-hidden="true"></i>
+        </span>
+        <ul>
+          <li ng-repeat="(key, value) in c.optionItems.persona"
+              ng-if="value"
+              ng-click="c.queryFieldSelect($event, value)"
+              ng-class="{ checked: c.currentItem.persona == value }">{{ value }}</li>
+        </ul>
+      </div>
+       {{ ::c.querySentence.persona }}
+      
+      
+      <div class="nl-field"
+           ng-if="c.data.gsf == true"
+           id="gsf_imperative"
+           ng-class="{ 'nl-field-open': c.queryFieldOpen.gsf_imperative }">
+        <span ng-class="{ 'unselectable': c.queryFieldSelected.gsf_imperative }"
+              ng-click="!c.isFieldLoading.gsf_imperative &&
+                        !c.queryFiec.querySentence.introldSelected.gsf_imperative &&
+                        c.optionItems.gsf_imperative &&
+                        c.currentItem.gsf_imperative === 'any' &&
+                        c.queryFieldOpenToggle($event)">{{ c.currentItem.gsf_imperative }}
+          <i ng-if="c.currentItem.gsf_imperative === 'any' && 
+                    !c.queryFieldSelected.gsf_imperative"
+             class="fa"
+             ng-class="c.isFieldLoading.gsf_imperative ? 
+                       'fa-circle-o-notch fa-spin' : 'fa-caret-down fa-sm'" 
+             aria-hidden="true"></i>
+        </span>
+        <ul>
+          <li ng-repeat="(key, value) in c.optionItems.gsf_imperative"
+              ng-if="value"
+              ng-click="c.queryFieldSelect($event, value)" 
+              ng-class="{ checked: c.currentItem.gsf_imperative == value }">{{ value }}</li></ul>
+      </div>
+      
+      
+      <div class="nl-field"
+           ng-if="c.data.gsf == false"
+           id="businessUnit"
+           ng-class="{ 'nl-field-open': c.queryFieldOpen.businessUnit }">
+        <span ng-class="{ 'unselectable': c.queryFieldSelected.businessUnit }"
+              ng-click="!c.isFieldLoading.businessUnit &&
+                        !c.queryFiec.querySentence.introldSelected.businessUnit &&
+                        c.optionItems.businessUnit &&
+                        c.currentItem.businessUnit === 'any' &&
+                        c.queryFieldOpenToggle($event)">{{ c.currentItem.businessUnit }}
+          <i ng-if="c.currentItem.businessUnit === 'any' && 
+                    !c.queryFieldSelected.businessUnit"
+             class="fa"
+             ng-class="c.isFieldLoading.businessUnit ? 
+                       'fa-circle-o-notch fa-spin' : 'fa-caret-down fa-sm'" 
+             aria-hidden="true"></i>
+        </span>
+        <ul>
+          <li ng-repeat="(key, value) in c.optionItems.businessUnit"
+              ng-if="value"
+              ng-click="c.queryFieldSelect($event, value)" 
+              ng-class="{ checked: c.currentItem.businessUnit == value }">{{ value }}</li></ul>
+      </div>      
+      
+      
+      
+      {{ ::c.querySentence.imperative_bu }}
+      <div class="nl-field"
+           ng-if="c.data.gsf == true"
+           id="gsf_capability"
+           ng-class="{ 'nl-field-open': c.queryFieldOpen.gsf_capability }">
+        <span ng-class="{ 'unselectable': c.queryFieldSelected.gsf_capability }"
+              ng-click="!c.isFieldLoading.gsf_capability &&
+                        !c.queryFiec.querySentence.introldSelected.gsf_capability &&
+                        c.optionItems.gsf_capability &&
+                        c.currentItem.gsf_capability === 'any' &&
+                        c.queryFieldOpenToggle($event)">{{ c.currentItem.gsf_capability }}
+          <i ng-if="c.currentItem.gsf_capability === 'any' && 
+                    !c.queryFieldSelected.gsf_capability"
+             class="fa"
+             ng-class="c.isFieldLoading.gsf_capability ? 
+                       'fa-circle-o-notch fa-spin' : 'fa-caret-down fa-sm'" 
+             aria-hidden="true"></i>
+        </span>
+        <ul>
+          <li ng-repeat="(key, value) in c.optionItems.gsf_capability"
+              ng-if="value"
+              ng-click="c.queryFieldSelect($event, value)" 
+              ng-class="{ checked: c.currentItem.gsf_capability == value }">{{ value }}</li></ul>
+      </div>      
+      {{ ::c.querySentence.capability }}
+      <div class="nl-field"
+           id="skillLevel"
+           ng-class="{ 'nl-field-open': c.queryFieldOpen.skillLevel }">
+        <span ng-class="{ 'unselectable': c.queryFieldSelected.skillLevel }"
+              ng-click="!c.isFieldLoading.skillLevel &&
+                        !c.queryFieldSelected.skillLevel &&
+                        c.optionItems.skillLevel &&
+                        c.currentItem.skillLevel === 'any' &&
+                        c.queryFieldOpenToggle($event)">{{ c.currentItem.skillLevel }}
+          <i ng-if="c.currentItem.skillLevel === 'any' && 
+                    !c.queryFieldSelected.skillLevel"
+             class="fa"
+             ng-class="c.isFieldLoading.skillLevel ? 
+                       'fa-circle-o-notch fa-spin' : 'fa-caret-down fa-sm'" 
+             aria-hidden="true"></i>
+        </span>
+        <ul>
+          <li ng-repeat="(key, value) in c.optionItems.skillLevel"
+              ng-if="value"
+              ng-click="c.queryFieldSelect($event, value)" 
+              ng-class="{ checked: c.currentItem.skillLevel == value }">{{ value }}</li>
+        </ul>
+      </div>
+      {{ ::c.querySentence.skillLevel }}<sup><i ng-hide="c.hasScrolled"
+                         class="icon-view"
+                         uib-tooltip="Level of product knowledge required to successfully deliver the demo"></i></sup>
+      
+      <div class="nl-overlay"></div>
+    </div>
+		<div ng-if="c.queryFormOpen">
+        <button id="find"
+                ng-click="c.queryAction($event)"
+                ng-class="{ 'active': c.isFindBtnActive, 
+                          'btn-xs': c.hasScrolled, 
+                          'btn-lg': !c.hasScrolled }"
+                class="btn-dhapp-primary btn-lg">Find</button>
+        <button id="reset"
+                ng-click="c.queryAction($event)"
+                ng-class="{ 'btn-xs': c.hasScrolled, 
+                          'btn-lg': !c.hasScrolled }"
+                class="btn-dhapp-primary btn-lg">Reset</button>        
+    </div>      
+  </div>
+</section>
+<!-- Start Virtual Agent Implementation -->
+<div ng-if="!c.isLoading">
+  <sp-widget widget="c.virtualAgent"></sp-widget>
+</div>
+<!-- End Virtual Agent Implementation -->
+
+]]></template>
+    </sp_widget>
+</record_update>

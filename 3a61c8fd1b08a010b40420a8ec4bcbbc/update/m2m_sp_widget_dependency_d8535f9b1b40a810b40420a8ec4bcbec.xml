@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="m2m_sp_widget_dependency">
+    <m2m_sp_widget_dependency action="INSERT_OR_UPDATE">
+        <sp_dependency display_value="angularJSAnimate">87f2979b1b40a810b40420a8ec4bcb2b</sp_dependency>
+        <sp_widget display_value="DemoHub App Welcome">38d210b51b88a010b40420a8ec4bcb62</sp_widget>
+        <sys_class_name>m2m_sp_widget_dependency</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-10-29 21:04:17</sys_created_on>
+        <sys_id>d8535f9b1b40a810b40420a8ec4bcbec</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>angularJSAnimate.DemoHub App Welcome</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>m2m_sp_widget_dependency_d8535f9b1b40a810b40420a8ec4bcbec</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-10-29 21:04:17</sys_updated_on>
+    </m2m_sp_widget_dependency>
+</record_update>

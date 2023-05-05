@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_ng_template">
+    <sp_ng_template action="INSERT_OR_UPDATE">
+        <id>minimizedQueryFormTemplate.html</id>
+        <sp_widget display_value="DemoHub App Find Process">5db298751b88a010b40420a8ec4bcb9e</sp_widget>
+        <sys_class_name>sp_ng_template</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-12-11 01:13:29</sys_created_on>
+        <sys_id>281f5c09db8d2010a5d284cc29961967</sys_id>
+        <sys_mod_count>9</sys_mod_count>
+        <sys_name>minimizedQueryFormTemplate.html</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_ng_template_281f5c09db8d2010a5d284cc29961967</sys_update_name>
+        <sys_updated_by>enrique.castro</sys_updated_by>
+        <sys_updated_on>2022-05-19 20:26:36</sys_updated_on>
+        <template><![CDATA[<div ng-if="c.hasScrolled"
+     ng-click="c.toggleFindProcess()">      
+  <span ng-show="!c.queryFormOpen && !c.isKeyworkSearch"
+        class="selected">
+    {{ ::c.querySentence.start }}
+    <span>{{ c.currentItem.industry }}</span> 
+    {{ ::c.querySentence.intro }}
+    <span ng-if="c.data.gsf == true">{{ c.currentItem.gsf_category }}</span> 
+    <span ng-if="c.data.gsf == false">{{ c.currentItem.workflow }}</span> 
+    {{ ::c.querySentence.workflow_category }}
+     <span ng-if="c.data.gsf == true">{{ c.currentItem.persona }}</span>
+    {{ ::c.querySentence.persona }}
+    <span ng-if="c.data.gsf == true">{{ c.currentItem.gsf_imperative }}</span> 
+    <span ng-if="c.data.gsf == false">{{ c.currentItem.businessUnit }}</span> 
+    {{ ::c.querySentence.imperative_bu }}
+    <span ng-if="c.data.gsf == true">{{ c.currentItem.gsf_capability }}</span> 
+    {{ ::c.querySentence.capability }}
+    <span>{{ c.currentItem.skillLevel }}</span>
+    {{ ::c.querySentence.skillLevel }}
+    <sup><i class="icon-view"
+            uib-tooltip="Level of product knowledge required to successfully deliver the demo" 
+            tooltip-placement="bottom"></i></sup>
+  </span>      
+  <span ng-show="!c.queryFormOpen && 
+                 c.isKeyworkSearch">
+    <i ng-class="{ 'glyphicon glyphicon-search' : !c.queryFormOpen }"></i>
+    {{ ::c.querySentence.question }}
+  </span>
+</div>]]></template>
+    </sp_ng_template>
+</record_update>

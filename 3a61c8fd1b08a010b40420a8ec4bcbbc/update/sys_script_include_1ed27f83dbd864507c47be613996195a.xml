@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_dh_app_home.DHAppHomeHelperUtil</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>DHAppHomeHelperUtil</name>
+        <script><![CDATA[var DHAppHomeHelperUtil = Class.create();
+DHAppHomeHelperUtil.prototype = {
+    initialize: function() {
+    },
+
+    type: 'DHAppHomeHelperUtil'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-11-10 15:12:50</sys_created_on>
+        <sys_id>1ed27f83dbd864507c47be613996195a</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>DHAppHomeHelperUtil</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sys_script_include_1ed27f83dbd864507c47be613996195a</sys_update_name>
+        <sys_updated_by>ansoo.chang</sys_updated_by>
+        <sys_updated_on>2020-11-10 15:12:50</sys_updated_on>
+    </sys_script_include>
+</record_update>

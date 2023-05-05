@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="m2m_sp_ng_pro_sp_widget">
+    <m2m_sp_ng_pro_sp_widget action="INSERT_OR_UPDATE">
+        <sp_angular_provider display_value="spEventPubSub">61eb09751b8ca010b40420a8ec4bcbad</sp_angular_provider>
+        <sp_widget display_value="DemoHub App Find Keyword">ae85c9badb28a4907c47be6139961940</sp_widget>
+        <sys_class_name>m2m_sp_ng_pro_sp_widget</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-11-21 18:05:34</sys_created_on>
+        <sys_id>8bf6493edb28a4907c47be61399619a9</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>spEventPubSub.DemoHub App Find Keyword</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>m2m_sp_ng_pro_sp_widget_8bf6493edb28a4907c47be61399619a9</sys_update_name>
+        <sys_updated_by>ansoo.chang</sys_updated_by>
+        <sys_updated_on>2020-11-21 18:05:34</sys_updated_on>
+    </m2m_sp_ng_pro_sp_widget>
+</record_update>

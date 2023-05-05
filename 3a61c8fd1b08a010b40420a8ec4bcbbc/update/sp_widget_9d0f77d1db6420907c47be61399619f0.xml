@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller=function($scope, $rootScope, spUtil, $timeout) {
+	var c = this;
+
+	c.isLoading = true;
+	$scope.isApplying = false;
+	$scope.hasError = false;
+	$scope.error = {
+		message: "", 
+		url: ""
+	}
+	c.current_state = "scenario_list";	
+	c.selected_scenario_instance = {
+		table: "", 
+		sys_id: ""
+	};
+
+	c.scenariosListOptions = {
+		"table": "x_snc_demohub_app_m2m_narrative_sc_narratives",
+		"title": "Scenarios",
+		"filter": c.data.narrative_query,
+		"display_field": "scenarios",
+		"scenario_instance_description": "",
+		"scenario_instance_thumbnail": "",
+		"secondary_fields": "scenarios.description",
+		"narrative_sys_id": c.data.narrative_sys_id,
+		"active": true,
+		"always_show": true,
+		"color": "default",
+		"filter_acls": "false",
+		"glyph": "empty",
+		"maximum_entries": 9999,
+		"order": 1,
+		"order_by": "order",
+		"order_direction": "asc",
+		"panel_body_height": "30em",
+		"size": "md",
+		"hide_header": true,
+		"scenario_executions": c.data.scenario_executions,
+		"executed_tailor": ""
+	}
+
+	spUtil.get("demohub_app_simple_list", c.scenariosListOptions).then(function(response) {
+		c.scenarioListWidget = response;
+		c.timeout();
+		c.isLoading = false;
+	});	
+
+	$rootScope.$on('showScenariosList', function(event, item) {
+		if(item.table == "x_snc_demohub_app_m2m_narrative_sc_narratives"){
+			c.isLoading = true;
+			c.current_state = "scenario_instances_list";
+
+			c.scenariosListOptions.table = "x_snc_dh_app_setup_narrative_variables_instances";
+			c.scenariosListOptions.title = "Scenario Instances";
+			c.scenariosListOptions.filter = "setup_configuration=" + item.record.display_field.value;
+			c.scenariosListOptions.display_field = "name";
+			c.scenariosListOptions.scenario_instance_description = "description";
+			c.scenariosListOptions.scenario_instance_thumbnail = "sys_id";
+			c.scenariosListOptions.order_by = "name";
+			c.scenariosListOptions.hide_header = false;
+			c.scenariosListOptions.order_direction = "asc";
+			c.scenariosListOptions.secondary_fields = "";
+			c.scenariosListOptions.executed_tailor = c.data.tailor_executed[item.record.display_field.value];
+			c.scenariosListOptions.scenario = item.record.display_field.value + "";
+			c.scenariosListOptions.scenario_executions = "";
+			
+			spUtil.get("demohub_app_simple_list", c.scenariosListOptions).then(function(response) {
+				c.scenarioListWidget = response;
+				c.timeout();
+				c.isLoading = false;
+			});	
+		}
+	});
+
+	c.previousState = function(state){
+		c.isLoading = true;
+		
+		if(state != "execution_error"){
+			$scope.hasError = false;
+			$scope.error = {
+				message: "", 
+				url: ""
+			}
+		}
+		
+		if(state == "scenario_instances_list"){
+			c.current_state = "scenario_list";
+			c.selected_scenario_instance.table = "";
+			c.selected_scenario_instance.sys_id = "";
+			c.scenariosListOptions.table = "x_snc_demohub_app_m2m_narrative_sc_narratives";
+			c.scenariosListOptions.title = "Scenarios";
+			c.scenariosListOptions.filter = c.data.narrative_query;
+			c.scenariosListOptions.scenario_instance_description = "";
+			c.scenariosListOptions.scenario_instance_thumbnail = "";
+			c.scenariosListOptions.display_field = "scenarios";
+			c.scenariosListOptions.hide_header = true;
+			c.scenariosListOptions.order_by = "order";
+			c.scenariosListOptions.order_direction = "asc";
+			c.scenariosListOptions.secondary_fields = "scenarios.description";
+			c.scenariosListOptions.scenario_executions = c.data.scenario_executions;
+
+			spUtil.get("demohub_app_simple_list", c.scenariosListOptions).then(function(response) {
+				c.scenarioListWidget = response;
+				c.timeout();
+				c.isLoading = false;
+			});
+		}
+		if(state == "new_scenario_instance" || state == "edit_scenario_instance" || state == "execution_error"){
+			c.current_state = "scenario_instances_list";
+
+			spUtil.get("demohub_app_simple_list", c.scenariosListOptions).then(function(response) {
+				c.scenarioListWidget = response;
+				c.timeout();
+				c.isLoading = false;
+			});	
+		}
+	}
+
+	c.executeScenarioInstance = function(scenario_instance_sys_id){
+		$scope.isApplying = true;
+		c.server.get({
+			action: "getExecutionAccess",
+			scenarioInstanceSysId: scenario_instance_sys_id
+		}).then(function(response) {
+			c.data.canExecute = response.data.canExecute;
+			if(c.data.canExecute){
+				if(response.data.validation_message == ""){
+					var ga = new GlideAjax('x_snc_dh_app_setup.DemoHubInstanceSetUp');
+					ga.addParam('sysparm_name', 'createExecutionRecord');
+					ga.addParam('sysparm_scenario_instances', scenario_instance_sys_id);
+					ga.getXML(function(response){
+						var execution_id = response.responseXML.documentElement.attributes[0].value;
+						
+						if(execution_id != ''){
+							spUtil.recordWatch($scope, "x_snc_dh_app_setup_narrative_setup_excecution", "sys_id="+execution_id+"^state=COMPLETE^ORstate=CANCELLED^ORstate=ERROR", function(item) {
+								if(item.data.record.state.value == "COMPLETE"){
+									c.data.scenario_executions[item.data.record.narrative.value] = item.data.record.narrative_instance.display_value;
+									c.data.tailor_executed[item.data.record.narrative.value] = item.data.record.narrative_instance.value;
+									$scope.isApplying = false;
+									c.previousState(c.current_state);
+								}else if(item.data.record.state.value != "COMPLETE"){
+									$scope.isApplying = false;
+									$scope.hasError = true;
+									$scope.error.message = "There was an error running the scenario instance " + item.data.record.narrative_instance.display_value + ", click here to review";
+									$scope.error.url = "/nav_to.do?uri=/x_snc_dh_app_setup_narrative_configuration_setup.do?sys_id=" + item.data.record.narrative.value;
+									c.previousState("execution_error");
+								}
+							});
+						}
+					});
+				}else{
+					spUtil.addErrorMessage(response.data.validation_message);
+					$scope.isApplying = false;
+				}
+			}else{
+				spUtil.addErrorMessage(response.data.validation_message);
+				$scope.isApplying = false;
+			}
+		});
+	}
+
+	c.timeout = function(){
+		$timeout(function(){
+			c.isLoading = false;
+		}, 2000);
+	}
+	
+	$scope.$on('updateState', function(event, state){
+		$scope.hasError = false;
+		$scope.error = {
+			message: "", 
+			url: ""
+		}
+		
+		c.current_state = state;
+	}); 
+	
+	$scope.$on('applyTailor', function(event, item){
+		var tailor_sys_id = item.sys_id;
+		c.executeScenarioInstance(tailor_sys_id);
+	}); 
+
+	$scope.$on('scenarioCreated', function(event, data){
+		if(data.scenario_inserted){
+			c.previousState(data.state);
+		}
+	}); 
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.alert-info {&#13;
+    color: $color-brand-dark !important;&#13;
+    border-color: $color-brand-dark !important;&#13;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>demohub_app_scenarios</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>DemoHub App Scenarios</name>
+        <option_schema>[{"hint":"Narrative Sys Id","name":"narrative_sys_id","section":"Data","label":"Narrative Sys Id","type":"string"}]</option_schema>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+	if (input && input.action === "getExecutionAccess"){
+		var scenario_instance_sys_id = input.scenarioInstanceSysId;
+		data.validation_message = "";
+		
+		var temp_validation = false;
+		var scenarioUtils = new global.DHAppScenarioUtils();
+
+		data.canExecute = scenarioUtils.validateScenarioFlowExecution(scenario_instance_sys_id);
+
+		if(!data.canExecute){
+			data.validation_message = "There is an scenario instance executing in server";
+			return;
+		}
+
+		var gr = new GlideRecord("x_snc_dh_app_setup_narrative_variables_instances");
+		gr.get(scenario_instance_sys_id);
+
+		var scenario_sys_id = gr.setup_configuration+'';
+		var flow_sys_id = gr.setup_configuration.setup_subflow+'';
+		var record_producer_sys_id = gr.setup_configuration.record_producer+'';
+		var scenario_scope = gr.setup_configuration.sys_scope+'';
+
+		validateLastUpdate(scenario_sys_id, flow_sys_id, record_producer_sys_id, scenario_scope);
+		temp_validation = scenarioUtils.validateVariables(flow_sys_id);
+		if(temp_validation){
+			data.validation_message = "There is a not supported Variable Type in the specified flow";
+			return;
+		}
+		temp_validation = scenarioUtils.validateConfiguration(scenario_instance_sys_id, flow_sys_id);
+		if(temp_validation){
+			data.validation_message = "The current configuration is invalid, it is an older version, please edit the scenarion instance and try it again";
+			return ;
+		}
+	}
+
+	function validateLastUpdate(scenario_sys_id, flow_sys_id, record_producer_sys_id, scenario_scope){
+		var str_scenario_sys_id = scenario_sys_id;
+		var str_flow_sys_id = flow_sys_id;
+		var str_record_producer_sys_id = record_producer_sys_id;
+		var str_scenario_scope = scenario_scope;
+
+		var grScenario = new GlideRecord("x_snc_dh_app_setup_narrative_configuration_setup");
+		grScenario.get(str_scenario_sys_id);
+
+		var grFlow = new GlideRecord("sys_hub_flow");
+		grFlow.get(str_flow_sys_id);
+
+		if(grScenario.rp_last_modified != grFlow.sys_updated_on){
+			new global.DHAppScenarioUtils().updateRecordProducerVariables(str_scenario_sys_id, str_flow_sys_id, str_record_producer_sys_id, str_scenario_scope);
+			grScenario.rp_last_modified = grFlow.sys_updated_on;
+			grScenario.update();
+		}
+	}
+
+	if (input && input.action === "init"){
+		data.narrative_sys_id = input.narrative_sys_id || "";
+		data.narrative_query = data.narrative_sys_id != "" ? "narrative=" + data.narrative_sys_id : "";
+		getStep3Info();
+	}
+
+	function getStep3Info(){
+		data.narrative_step3_info = new x_snc_demohub_app.find().getStep3ModalInfo(data.narrative_sys_id);
+
+
+		data.scenarios_length = data.narrative_step3_info.scenario_array.length;
+		data.scenario_executions = {};
+		data.tailor_executed = {};
+
+		if(data.scenarios_length != 0){
+			data.narrative_step3_info.scenario_array.forEach(function(scenario){
+				data.scenario_executions[scenario.sys_id] = scenario.executed_instance.name;
+				data.tailor_executed[scenario.sys_id] = scenario.executed_instance.sys_id;
+			});
+		}
+	}
+
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>kevin.moreno</sys_created_by>
+        <sys_created_on>2020-11-17 15:38:45</sys_created_on>
+        <sys_id>9d0f77d1db6420907c47be61399619f0</sys_id>
+        <sys_mod_count>220</sys_mod_count>
+        <sys_name>DemoHub App Scenarios</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_widget_9d0f77d1db6420907c47be61399619f0</sys_update_name>
+        <sys_updated_by>diego.ramirez</sys_updated_by>
+        <sys_updated_on>2022-04-08 16:24:30</sys_updated_on>
+        <template><![CDATA[<div ng-if="hasError" class="alert alert-danger" role="alert">
+  <a ng-href="{{error.url}}" target="_blank" style="color: #a02622!important">{{error.message}}</a>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<div>
+  <div ng-if="c.data.scenarios_length > 0">
+    <div ng-if="!c.isLoading">
+      <!-- List of Scenarios for Current Narrative -->
+      <div ng-if="c.current_state != 'scenario_instance_form'">
+        <sp-widget widget="c.scenarioListWidget"></sp-widget>
+      </div>
+      <br />
+      <div>
+        <button ng-disabled="isApplying" class="btn btn-default" ng-if="c.current_state != 'scenario_list'" ng-click="c.previousState(c.current_state)">
+          <i class="icon-arrow-left"></i> Previous
+        </button>
+      </div>
+    </div>
+    <div ng-if="c.isLoading">
+      <span class="fa fa-circle-o-notch fa-spin"></span>
+    </div>
+  </div>
+  <div ng-if="c.data.scenarios_length == 0" class="alert alert-info" role="alert">
+    <strong><i class="fa fa-lg fa-info-circle"></i> There are no scenarios associated with this narrative.</strong>
+  </div>
+</div>]]></template>
+    </sp_widget>
+</record_update>

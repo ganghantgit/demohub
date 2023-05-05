@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($log, $scope, $element, $document, spModal, spUtil, $q, $timeout, $window,$rootScope) {
+	'use strict';
+
+	/* widget controller */
+	var c = this;
+	var $spContainer = $document.find('.sp-page-root');
+	var $widgetParent = $element.parent();
+
+	spUtil.recordWatch($scope, "x_snc_demohub_app_install_queue", "stateNOT INCompleted,Error", function(response) {
+
+		c.server.refresh();
+
+	});
+
+	$scope.openWindow = function(query) {
+		$window.open('/x_snc_demohub_app_install_queue_list.do?sysparm_query='+query, '_blank');
+	};
+
+
+}]]></client_script>
+        <controller_as>$ctrl</controller_as>
+        <css>$color-darker: #485563;
+$color-white: #ffffff;
+
+$window-width: 375px;
+$window-height: 600px;
+$button-height: 60px;
+$bottom-margin: 15px;
+
+$sn-chatbot-animation-speed: 300ms;
+
+// OVERRIDE TO DISPLAY RECORD CARDS
+.sn-card-component_records {
+  display: block !important;
+}
+
+.conversation-button-container {
+  position: fixed;
+  left: 30px;
+  bottom: 14px;
+  z-index: 20;
+
+  .conversation-region {
+    position: relative;
+    opacity: 0;
+    visibility: hidden;
+
+
+    &amp;.open {
+      transition: $sn-chatbot-animation-speed ease-in opacity;
+      opacity: 1;
+      visibility: visible;
+
+    }
+  }
+
+  .done-button {
+    position: relative;
+    width: 160px;
+    color: #fff;
+    float: right;
+    border: none;
+    height: $button-height;
+    border-radius: 60px;
+    box-shadow: 0px 2px 11px #ababab;
+    -moz-box-shadow: 0px 2px 11px #ababab;
+    -o-box-shadow: 0px 2px 11px #ababab;
+    padding: 0;
+    background-color: #8D8DE0;
+
+    &amp;::before {
+      content: "";
+      width: 160px;
+      height: 60px;
+      border-radius: 60px;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    &amp;:hover::before {
+      background-color: rgba(0,0,0,0.2);
+    }
+
+    &amp;:focus {
+      outline: thin dotted;
+      outline-color: gray;
+      outline: 5px auto -webkit-focus-ring-color;
+      outline-offset: 2px;
+    }
+
+    &amp;.state-unread {
+      &amp; &gt; span:after {
+        content: ' ';
+        position: absolute;
+        top: -17px;
+        right: -14px;
+        width: 16px;
+        height: 16px;
+        background-color: #ed6e5c;
+        //border-radius: 25px;
+      }
+    }
+
+    .help-icon {
+      pointer-events: none;
+      position: relative;
+    }
+
+    .sn-va-widget-icon {
+      background-image: url('/images/sn-va-sp-widget/sn-va-sp-widget-icon.svg');
+      height: 32px;
+      top: 1px;
+      left: 12px;
+      width: 36px;
+      display: block
+    }
+
+    .icon-close {
+      font-size: 20px;
+
+    }
+
+  }
+}
+.help-button {
+  position: relative;
+  width: 160px;
+  color: #fff;
+  float: right;
+  border: none;
+  height: $button-height;
+  border-radius: 60px;
+  box-shadow: 0px 2px 11px #ababab;
+  -moz-box-shadow: 0px 2px 11px #ababab;
+  -o-box-shadow: 0px 2px 11px #ababab;
+  padding: 0;
+  background-color: #8D8DE0;
+
+  &amp;::before {
+    content: "";
+    width: 160px;
+    height: 60px;
+    border-radius: 60px;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  &amp;:hover::before {
+    background-color: rgba(0,0,0,0.2);
+  }
+
+  &amp;:focus {
+    outline: thin dotted;
+    outline-color: gray;
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: 2px;
+  }
+
+  &amp;.state-unread {
+    &amp; &gt; span:after {
+      content: ' ';
+      position: absolute;
+      top: -17px;
+      right: -14px;
+      width: 16px;
+      height: 16px;
+      background-color: #ed6e5c;
+      //border-radius: 25px;
+    }
+  }
+
+  .help-icon {
+    pointer-events: none;
+    position: relative;
+  }
+
+  .sn-va-widget-icon {
+    background-image: url('/images/sn-va-sp-widget/sn-va-sp-widget-icon.svg');
+    height: 32px;
+    top: 1px;
+    left: 12px;
+    width: 36px;
+    display: block
+  }
+
+  .icon-close {
+    font-size: 20px;
+
+  }
+
+}
+}
+
+// window sizing
+.sn-connect-floating {
+  position: relative;
+  bottom: 15px;
+  right: 0;
+  display: none;
+
+  .sn-connect-floating-wrapper {
+    width: $window-width; 
+    transition: 
+      border-bottom: 1px solid #bdc0c4;
+    margin-right: 0;
+    right: 0;
+    box-shadow: 0px 2px 11px #ababab !important;
+    -moz-box-shadow: 0px 2px 11px #ababab !important;
+    -o-box-shadow: 0px 2px 11px #ababab !important;
+    transition: max-height 0s $sn-chatbot-animation-speed;
+    display: none;
+    border-radius: 10px;
+    overflow: hidden;
+
+    .conversation-container {
+      height: 100%;
+      display: none;
+
+      .chat-frame {
+        max-height: $window-height;
+        height: calc(100vh - $button-height - ($bottom-margin * 3));
+        width: $window-width;
+        margin-bottom: -5px;
+        border: none;
+        overflow: hidden;
+        background-color: #fff;
+      }
+
+      // Immediate div is autogenerated from serviceportal
+      &amp; &gt; div {
+        height: 100%;
+      }
+    }
+  }
+}
+
+// Mobile SCSS
+@media (max-width: 425px) {  
+  .sn-connect-floating {
+    .sn-connect-floating-wrapper {
+      position: fixed;
+      max-height: 100%;
+      width: 100%;
+      left: 0;
+      right: 0;
+      bottom: calc($button-height + 20px);
+      top: 0;
+      border-radius: 0px !important;
+
+      .conversation-container {
+        position: absolute;
+        max-height: 100%;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+
+        .chat-frame {
+          max-height: initial !important;
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          left: 0;
+          right: 0;
+          top: 0;
+          bottom: 0;
+        }
+      }
+    }
+  }
+}
+// Default override
+
+.help-button {
+  background-color: unset;
+}
+
+.conversation-button-container button.help-button {
+  @include font-light;
+  background-color: $color-brand-suplementary-orange !important;
+  box-shadow: none;
+}
+.conversation-button-container button.done-button {
+  @include font-light;
+  background-color: $color-brand-suplementary-gray !important;
+  box-shadow: none;
+}
+
+.ip-access {
+  position: fixed;
+  left: 24px;
+  top: 20px;
+  z-index: 20;
+  font-size: 16px;
+  float: left;
+}
+
+.ip-acces-on{
+	background-color: $color-brand-suplementary-orange !important;
+}
+
+.ip-acces-off{
+ 	background-color: $color-brand-suplementary-green !important;
+}
+
+.ip-access-status{
+	padding: 2px 6px;
+  border-radius: 3px;
+  display: inline-block;
+  font-weight: bold;
+  color:#FFF;
+}
+
+.ip-access-link-text{
+	color: #717171;
+  box-shadow:none !important;
+  -webkit-box-shadow:none !important;
+  outline:0 !important;
+}
+
+.ip-access-link-text:hover{
+	color: $color-brand-dark !important;
+}
+
+
+
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>demohub_app_install_queue</id>
+        <internal>false</internal>
+        <link><![CDATA[function(){}]]></link>
+        <name>DemoHub App Install Queue</name>
+        <option_schema>[{"hint":"The color of the floating button which opens the virtual agent service portal widget button.","name":"button_color","section":"Presentation","default_value":"#8D8DE0","label":"Floating Button Color","type":"string"},{"hint":"The URL parameters to pass to the VA client, for example: sysparm_live_agent_queue=abc123&amp;sysparm_conversation=xzy456","name":"va_url_params","section":"Behavior","label":"Virtual Agent Client URL Parameters","type":"string"}]</option_schema>
+        <public>true</public>
+        <roles/>
+        <script><![CDATA[(function() {
+	
+	if (input) {
+		data.count = new x_snc_demohub_app.installQueue().getInstallQueueCount();
+	} else {
+		data.count = new x_snc_demohub_app.installQueue().getInstallQueueCount();
+	}
+	
+	var isacl =  gs.getProperty("x_snc_demohub_app.IP ACL Status");
+	data.ipLink = gs.getProperty("x_snc_demohub_app.IP ACL Info Link");
+	if(isacl == "true"){
+		data.statusIp = "VPN";
+	}
+	else{	
+		data.statusIp = "Everywhere";
+	}
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>alex.steinwachs</sys_created_by>
+        <sys_created_on>2021-05-18 15:03:24</sys_created_on>
+        <sys_id>fd48014cdb5474107c47be613996190d</sys_id>
+        <sys_mod_count>213</sys_mod_count>
+        <sys_name>DemoHub App Install Queue</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_widget_fd48014cdb5474107c47be613996190d</sys_update_name>
+        <sys_updated_by>natalia.marrufo</sys_updated_by>
+        <sys_updated_on>2022-08-10 22:41:58</sys_updated_on>
+        <template><![CDATA[<div class="ip-access" >
+  <a class="ip-access-link-text" target="_blank" ng-href="{{data.ipLink}}">Instance Accessible from: <span ng-class='data.statusIp == "VPN" ? "ip-acces-on ip-access-status" : "ip-acces-off ip-access-status"'>{{data.statusIp}}</span></a>
+</div>
+<div class="conversation-button-container" >
+  <button aria-label="in progress"
+          ng-if="data.count > 0"
+          class="help-button"
+          ng-click="openWindow('stateNOT INCompleted,Error^ORDERBYnumber')">
+    <div class="hover-overlay"></div>
+
+    Install In Progress <br> {{data.count}} in Queue
+  </button>  
+  <button aria-label="done"
+          ng-if="data.count == 0"
+          class="done-button"
+          ng-click="openWindow('stateINCompleted,Error^ORDERBYDESCnumber')">
+    <div class="hover-overlay"></div>
+
+    Install Queue Idle
+  </button>
+
+</div>
+]]></template>
+    </sp_widget>
+</record_update>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_css_include">
+    <sp_css_include action="INSERT_OR_UPDATE">
+        <name>gilroy-font64.css</name>
+        <source>local</source>
+        <sp_css display_value="gilroy-font64.css">f9c7e8f5db8860101fe0265d139619d5</sp_css>
+        <sys_class_name>sp_css_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-10-24 16:45:02</sys_created_on>
+        <sys_id>0608a039db8860101fe0265d13961958</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>gilroy-font64.css</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_css_include_0608a039db8860101fe0265d13961958</sys_update_name>
+        <sys_updated_by>ansoo.chang</sys_updated_by>
+        <sys_updated_on>2020-12-02 13:21:17</sys_updated_on>
+        <url/>
+    </sp_css_include>
+</record_update>

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_theme">
+    <sp_theme action="INSERT_OR_UPDATE">
+        <css_variables>:root {&#13;
+  font-size: 16px;&#13;
+}&#13;
+&#13;
+$color-brand-dark: #032D42;&#13;
+$color-brand-light: #86ED78;&#13;
+$color-brand-suplementary-orange: #FCA822;&#13;
+$color-brand-suplementary-purple: #5274FF;&#13;
+$color-brand-suplementary-gray: #C3C3C3;&#13;
+$color-brand-suplementary-blue: #24C2CE;&#13;
+$color-suplementary-light-gray: #F2F2F2;&#13;
+$color-brand-suplementary-green: #009156;&#13;
+&#13;
+$text-color: $color-brand-dark;&#13;
+$link-color: $color-brand-dark;&#13;
+$link-hover-color: $color-brand-light;&#13;
+&#13;
+/* custom colors used throught site &#13;
+ * darkgrey - for icons&#13;
+ * lightgrey&#13;
+*/&#13;
+&#13;
+$font-size-base: 16px;&#13;
+$font-family-gilroy: Gilroy-Regular, "Helvetica Neue", Helvetica, Arial,&#13;
+  sans-serif;&#13;
+&#13;
+$font-size-lg: $font-size-base * 1.25;&#13;
+$font-size-sm: $font-size-base * 0.875;&#13;
+$font-size-xsm: $font-size-base * 0.75;&#13;
+&#13;
+@mixin font-regular() {&#13;
+  font-family: "Gilroy-Regular";&#13;
+}&#13;
+&#13;
+@mixin font-medium() {&#13;
+  font-family: "Gilroy-Regular";&#13;
+}&#13;
+&#13;
+@mixin font-bold() {&#13;
+  font-family: "Gilroy-Bold";&#13;
+}&#13;
+&#13;
+@mixin font-light() {&#13;
+  font-family: "Gilroy-Light";&#13;
+}&#13;
+&#13;
+/* buttons */&#13;
+@mixin button-dhapp-primary() {&#13;
+  @include font-light;&#13;
+  color: $color-brand-dark;&#13;
+  border-radius: 4px;&#13;
+  width: inherit;&#13;
+  background: white;&#13;
+  padding: 0.25rem 1.25rem;&#13;
+  border: 1px solid $color-brand-dark;&#13;
+  transition: all 0.3s ease-out 0s;&#13;
+  &amp;:hover {&#13;
+    border: 1px solid $color-brand-dark;&#13;
+    color: white;&#13;
+    background: $color-brand-dark;&#13;
+  }&#13;
+}&#13;
+&#13;
+/* spinner */&#13;
+@mixin spinner-dhapp-primary() {&#13;
+  border: 0.5rem solid white;&#13;
+  border-top: 0.5rem solid darken($color-suplementary-light-gray, 20%);&#13;
+  border-radius: 50%;&#13;
+  width: 2.5rem;&#13;
+  height: 2.5rem;&#13;
+  animation: spin 1s linear infinite;&#13;
+}&#13;
+&#13;
+/* min find process */&#13;
+.fixed-top-open {&#13;
+  margin-bottom: 8rem;&#13;
+  &#13;
+  &gt; .nl-form-min {&#13;
+    padding-bottom: 0.5rem;&#13;
+  	height: unset !important;&#13;
+  	border-bottom: 1px solid $color-brand-suplementary-gray;&#13;
+  	height: 8rem !important;&#13;
+    justify-content: space-between !important;&#13;
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);&#13;
+  &#13;
+  	.nl-form {&#13;
+      font-size: 1.5rem;&#13;
+       &#13;
+      .nl-field ul {&#13;
+        height: 10rem;&#13;
+        min-width: 15rem;&#13;
+        font-size: 1.25rem;&#13;
+        top: 335%;&#13;
+      }&#13;
+      &#13;
+      .fa.fa-caret-down {&#13;
+      	font-size: 1rem;&#13;
+      }&#13;
+    }&#13;
+  }&#13;
+    &#13;
+  span.glyphicon {&#13;
+  	border: unset !important;&#13;
+    color: $color-brand-dark;&#13;
+  } &#13;
+&#13;
+}&#13;
+&#13;
+.fixed-top-closed {&#13;
+    margin: unset;&#13;
+	//margin-bottom: 3rem;&#13;
+    padding: unset;&#13;
+   &#13;
+    &gt; .nl-form-min {  	&#13;
+      height: unset !important;&#13;
+  	  border-bottom: 1px solid $color-brand-suplementary-gray;&#13;
+  	  justify-content: space-between !important;&#13;
+      transition: all 0.5s cubic-bezier(.25,.8,.25,1);&#13;
+    }&#13;
+    &#13;
+    span:last-of-type {&#13;
+      color: darken($color-brand-suplementary-gray, 10%);&#13;
+      border: unset;&#13;
+    }&#13;
+    &#13;
+    span.glyphicon {&#13;
+      border: unset !important;&#13;
+      color: $color-brand-dark;&#13;
+    } &#13;
+}&#13;
+&#13;
+/* overrides */&#13;
+div#uiNotificationContainer {&#13;
+    z-index: 9999 !important;&#13;
+}&#13;
+&#13;
+.form-control[disabled],&#13;
+.form-control[readonly],&#13;
+fieldset[disabled] .form-control,&#13;
+.form-control {&#13;
+  border-radius: unset !important;&#13;
+	border: 1px solid red;&#13;
+	outline: none !important;&#13;
+	box-shadow: none !important;&#13;
+	border: 1px solid $color-brand-dark !important;&#13;
+}&#13;
+&#13;
+input[type="text"], select {&#13;
+  @include font-light;&#13;
+	outline: none !important;&#13;
+	box-shadow: none !important;&#13;
+	border:1px solid $color-brand-dark !important;&#13;
+}</css_variables>
+        <footer/>
+        <footer_fixed>false</footer_fixed>
+        <header/>
+        <name>DemoHub App Home Theme</name>
+        <navbar_fixed>false</navbar_fixed>
+        <sys_class_name>sp_theme</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-10-24 14:39:04</sys_created_on>
+        <sys_id>15bac43d1b48a010b40420a8ec4bcb87</sys_id>
+        <sys_mod_count>180</sys_mod_count>
+        <sys_name>DemoHub App Home Theme</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_theme_15bac43d1b48a010b40420a8ec4bcb87</sys_update_name>
+        <sys_updated_by>natalia.marrufo</sys_updated_by>
+        <sys_updated_on>2022-08-10 22:39:52</sys_updated_on>
+    </sp_theme>
+</record_update>

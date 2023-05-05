@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_angular_provider">
+    <sp_angular_provider action="INSERT_OR_UPDATE">
+        <name>spFetchService</name>
+        <script><![CDATA[function($http) {
+   var startIndex = 0;
+   var pageSize = 20;
+	 var results = [];
+			
+	var getNewBatch = function (data) {
+					
+            var selectedBusinessUnit = (data.businessUnit == "any business unit") ?
+                "business_unitANYTHING" : "business_unit=" + data.businessUnit;
+
+            var selectedWorkflow = (data.workflow == "any") ?
+                "workflowANYTHING" : "workflow=" + data.workflow;
+
+            var orderBy = "ORDERBYDESCsys_updated_on";
+            var and = "^"
+
+            var encodedQueryStr = selectedBusinessUnit + and + selectedWorkflow + and + orderBy;
+      
+            var params = [
+                'sysparm_offset=' + (startIndex * pageSize), // set what page to grab
+                'sysparm_limit=' + pageSize, // set how many records per page
+                'sysparm_query=' + encodedQueryStr //'business_unitANYTHING^workflowANYTHING^ORDERBYtitle'
+            ].join('&');
+
+            //console.log(params);
+
+            return $http.get("/api/now/table/x_snc_demohub_app_narrative?" + params)
+                .then(function (response) {
+                    startIndex++;
+                    console.log(response.data.result);
+							      results = results.concat(response.data.result);
+							
+										return results;
+                    
+                });		
+		
+	}
+	
+	return {
+		getNewBatch:getNewBatch
+	}
+}
+
+
+]]></script>
+        <sys_class_name>sp_angular_provider</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-10-26 21:31:19</sys_created_on>
+        <sys_id>e40bb7da1b4c6410b40420a8ec4bcb4c</sys_id>
+        <sys_mod_count>22</sys_mod_count>
+        <sys_name>spFetchService</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_angular_provider_e40bb7da1b4c6410b40420a8ec4bcb4c</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-10-27 12:11:33</sys_updated_on>
+        <type>service</type>
+    </sp_angular_provider>
+</record_update>

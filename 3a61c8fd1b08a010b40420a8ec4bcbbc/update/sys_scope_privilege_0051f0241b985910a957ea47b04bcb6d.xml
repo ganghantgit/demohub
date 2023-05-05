@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_scope_privilege">
+    <sys_scope_privilege action="INSERT_OR_UPDATE">
+        <operation>read</operation>
+        <source_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</source_scope>
+        <status>allowed</status>
+        <sys_class_name>sys_scope_privilege</sys_class_name>
+        <sys_created_by>enrique.castro</sys_created_by>
+        <sys_created_on>2022-06-21 19:02:20</sys_created_on>
+        <sys_id>0051f0241b985910a957ea47b04bcb6d</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>x_snc_dh_telemetry_narrative_rating</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sys_scope_privilege_0051f0241b985910a957ea47b04bcb6d</sys_update_name>
+        <sys_updated_by>enrique.castro</sys_updated_by>
+        <sys_updated_on>2022-06-21 19:02:20</sys_updated_on>
+        <target_name>x_snc_dh_telemetry_narrative_rating</target_name>
+        <target_scope display_value="DemoHub App Telemetry">f9c5f6a8dbdb6010a5d284cc29961905</target_scope>
+        <target_type>sys_db_object</target_type>
+    </sys_scope_privilege>
+</record_update>

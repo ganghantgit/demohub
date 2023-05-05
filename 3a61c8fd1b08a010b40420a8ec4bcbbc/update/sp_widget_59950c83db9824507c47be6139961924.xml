@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function($scope, spUtil) {
+    /* widget controller */
+    var c = this;
+
+    c.$onInit = function() {
+        getNarrativeBrief(narrSysId);
+    };
+
+    var narrSysId = c.options.shared.sys_id;
+    var displayProps = ['business_unit',
+        'version',
+        'type',
+        'outcome',
+        'skill_level',
+        'workflow',
+        'estimated_setup_effort',
+        'demo_duration',
+        'estimated_setup_duration',
+			  'gsf_version',
+			  'gsf_capability',
+			  'gsf_version_url',
+			  'gsf_use_case'
+    ];
+
+    c.isLoading = false;
+    c.narrBrief = c.narrBrief || {};
+    c.tableHead = ['#', 'File Name', 'Size', 'Download'];
+    c.activeTab = c.options.shared.currentTarget.dataset.tab ? c.options.shared.currentTarget.dataset.tab : 'default';
+
+    function getNarrativeBrief(sysId) {
+        c.isLoading = true;
+
+        c.server.get({
+            action: 'getNarrativeBrief',
+            sys_id: sysId
+        }).then(function(response) {
+            c.isLoading = false;
+            c.narrBrief = response.data.narrative_brief;
+            c.info = setDisplayProps(c.narrBrief, displayProps);
+            c.setExternalLinkIcons();
+        });
+    }
+
+    function setDisplayProps(object, arr) {
+        var brief = [];
+        var sortedBrief;
+
+        for (var i = 0; i < arr.length; i++) {
+            if (object[arr[i]]) {
+                brief.push({
+                    label: editKey(arr[i]),
+                    data: object[arr[i]]
+                });
+            }
+        }
+
+        sortedBrief = _.sortBy(brief, function(obj) {
+            return obj.label;
+        });
+
+        return sortedBrief;
+    }
+
+
+    function editKey(key) {
+        var edited = _.startCase(key);
+
+        if (edited === 'Estimated Setup Effort') {
+            edited = 'Prep';
+        } else if (edited === 'Estimated Setup Duration') {
+            edited = 'Install';
+        } else if (edited === 'Demo Duration') {
+            edited = 'Demo';
+        } else if (edited === 'Gsf Capability'){
+						edited = 'Capability';	 
+				} else if (edited === 'Gsf Use Case'){
+						edited = 'Use Case';
+				}
+
+        return edited;
+    }
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* &#13;
+- demohub app color definitions&#13;
+$color-iceberg-green: #cde1d9;&#13;
+$color-gainsboro-grey: #dcdcdc;&#13;
+&#13;
+- servicenow color definitions&#13;
+$color-gable-green: #293e40;&#13;
+$color-acapulco-green: #81b5a1;&#13;
+$color-plain-grey: #b6b6b6;&#13;
+*/&#13;
+&#13;
+/* custom to widget */&#13;
+.narrative-modal table.table &gt; tbody &gt; tr &gt; td.file-download {&#13;
+  font-size: 0.425rem;&#13;
+}&#13;
+&#13;
+div.table-responsive + div a {&#13;
+  text-decoration: underline;&#13;
+}&#13;
+.fixed-bottom {&#13;
+  bottom: 0;&#13;
+  position: absolute;&#13;
+}&#13;
+.gilroy-bold{&#13;
+  font-family: 'Gilroy-Bold';&#13;
+}&#13;
+.font-11{&#13;
+  font-size: 11px;&#13;
+}&#13;
+&#13;
+button.btn.btn-default {&#13;
+    border-radius: 4px;&#13;
+}&#13;
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>demohub_app_guided_step1</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+
+    var iconExternalLink = '<i class="fa fa-external-link" aria-hidden="true"></i>';
+
+    scope.c.setExternalLinkIcons = function() {
+        setTimeout(function() {
+            $('#description, #additionalResources').find('a').each(function() {
+                $(this).append(iconExternalLink);
+
+                if ($(this).attr('target')) {
+                    return;
+                } else {
+                    $(this).attr('target', '_blank');
+                }
+            });
+        }, 100);
+    };
+}]]></link>
+        <name>DemoHub App Guided Step1</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+    /* populate the 'data' object */
+    /* e.g., data.table = $sp.getValue('table'); */
+
+    if (input && input.action === 'getNarrativeBrief') {
+        data.narrative_brief = new x_snc_demohub_app.find().getStep1ModalInfo(input.sys_id);
+    }
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-11-09 21:42:37</sys_created_on>
+        <sys_id>59950c83db9824507c47be6139961924</sys_id>
+        <sys_mod_count>419</sys_mod_count>
+        <sys_name>DemoHub App Guided Step1</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_widget_59950c83db9824507c47be6139961924</sys_update_name>
+        <sys_updated_by>enrique.castro</sys_updated_by>
+        <sys_updated_on>2022-02-10 21:46:20</sys_updated_on>
+        <template><![CDATA[<section class="narrative-modal">  
+  <uib-tabset active="active">
+    <uib-tab index="0"
+             active="::c.activeTab === 'default'"
+             heading="Description">
+      <div ng-include="'narrativeDescriptionTemplate.html'"></div>
+    </uib-tab>
+    <uib-tab index="1"
+             active="::c.activeTab === 'attachment'"
+             ng-if="::c.narrBrief.attachments.length">
+      <uib-tab-heading class="attachment">
+        Attachments ({{ ::c.narrBrief.attachments.length }})
+      </uib-tab-heading>
+      <div ng-include="'narrativeAttachmentTemplate.html'"></div>
+      <div class="additional-resources" 
+           ng-show="::c.narrBrief.additional_resources">
+        <label>Additional Resources</label>
+        <div id="additionalResources"
+             ng-bind-html="::c.narrBrief.additional_resources"></div>
+      </div>
+    </uib-tab>
+    <uib-tab ng-if="::c.narrBrief.additional_instructions"
+             active="::c.activeTab === 'manualSteps'"
+             index="2">
+      <uib-tab-heading>
+        Manual Steps<i class="fa fa-wrench"></i>
+      </uib-tab-heading>
+      <div class="content">
+        <narrative-manual-steps data="c.narrBrief.additional_instructions"></narrative-manual-steps>
+      </div>     
+    </uib-tab>
+    <uib-tab index="3"
+             active="::c.activeTab === 'personas'"
+             ng-if="::c.narrBrief.personas.length">
+      <uib-tab-heading>
+        Personas <i class="fa fa-users"></i>
+      </uib-tab-heading>
+      <narrative-persona data="c.narrBrief.personas"></narrative-persona>
+    </uib-tab>  
+  </uib-tabset>  
+  <div class="fixed-bottom">
+    <a ng-href="{{::c.narrBrief.gsf_version_url}}" target="_blank" ng-if="::c.narrBrief.gsf_version">
+      <span class="gilroy-bold font-11">Based on GSF v{{::c.narrBrief.gsf_version}}</span>
+    </a>
+  </div>  
+</section>
+
+
+]]></template>
+    </sp_widget>
+</record_update>

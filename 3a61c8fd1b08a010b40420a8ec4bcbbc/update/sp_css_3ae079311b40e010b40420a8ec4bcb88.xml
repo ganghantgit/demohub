@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_css">
+    <sp_css action="INSERT_OR_UPDATE">
+        <css>/* step line */&#13;
+.main-dhapp-timeline {&#13;
+  position: relative;&#13;
+  margin: 3rem 0;&#13;
+}&#13;
+&#13;
+.main-dhapp-timeline .dhapp-timeline {&#13;
+  margin-bottom: 30px;&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+}&#13;
+&#13;
+.main-dhapp-timeline .dhapp-timeline .check {&#13;
+  text-align: center;&#13;
+  font-size: 1.25rem;&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+  border-bottom: 1px solid darkgrey;&#13;
+  width: 5%;&#13;
+  height: 45px;&#13;
+  background: white;&#13;
+}&#13;
+&#13;
+.main-dhapp-timeline .step-content {&#13;
+  width: 30%;&#13;
+  float: left;&#13;
+  margin-top: 6px;&#13;
+  background-size: 125px 125px;&#13;
+  background-repeat: no-repeat;&#13;
+  display: flex;&#13;
+  flex-direction: column;&#13;
+}&#13;
+&#13;
+.main-dhapp-timeline .step-content &gt; div:first-of-type {&#13;
+  font-size: 1.125rem;&#13;
+  color: grey;&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+.main-dhapp-timeline .step-content.step01 &gt; .step-outer {&#13;
+  background-image: url("step01.png");&#13;
+}&#13;
+&#13;
+.main-dhapp-timeline .step-content.step02 &gt; .step-outer {&#13;
+  background-image: url("step02.png");&#13;
+}&#13;
+&#13;
+.main-dhapp-timeline .step-content.step03 &gt; .step-outer {&#13;
+  background-image: url("step03.png");&#13;
+}&#13;
+&#13;
+.main-dhapp-timeline .step-content.step04 &gt; .step-outer {&#13;
+  background-image: url("step04.png");&#13;
+}&#13;
+&#13;
+.main-dhapp-timeline .step-outer {&#13;
+  width: 150px;&#13;
+  height: 150px;&#13;
+  font-size: 16px;&#13;
+  text-align: center;&#13;
+  margin: auto;&#13;
+  z-index: 1;&#13;
+  background-size: contain;&#13;
+  background-repeat: no-repeat;&#13;
+  font-size: 1rem;&#13;
+  color: grey;&#13;
+}&#13;
+&#13;
+.main-dhapp-timeline .dhapp-timeline-content {&#13;
+  width: 65%;&#13;
+  padding-left: 30px;&#13;
+}&#13;
+&#13;
+.main-dhapp-timeline .title {&#13;
+  font-size: 20px;&#13;
+  line-height: 24px;&#13;
+  margin: 0 0 15px 0;&#13;
+}&#13;
+&#13;
+.main-dhapp-timeline .description {&#13;
+  margin-bottom: 0;&#13;
+  margin-top: 1.125rem;&#13;
+  text-align: left;&#13;
+}&#13;
+&#13;
+.main-dhapp-timeline .step-flex-container {&#13;
+  display: flex;&#13;
+  justify-content: space-between;&#13;
+  align-items: flex-start;&#13;
+}</css>
+        <name>dhapp-step-timeline.css</name>
+        <sys_class_name>sp_css</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-10-24 22:03:54</sys_created_on>
+        <sys_id>3ae079311b40e010b40420a8ec4bcb88</sys_id>
+        <sys_mod_count>43</sys_mod_count>
+        <sys_name>dhapp-step-timeline.css</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_css_3ae079311b40e010b40420a8ec4bcb88</sys_update_name>
+        <sys_updated_by>ansoo.chang</sys_updated_by>
+        <sys_updated_on>2020-12-02 13:20:10</sys_updated_on>
+    </sp_css>
+</record_update>

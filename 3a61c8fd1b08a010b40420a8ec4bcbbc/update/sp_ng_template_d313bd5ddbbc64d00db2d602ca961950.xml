@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_ng_template">
+    <sp_ng_template action="INSERT_OR_UPDATE">
+        <id>narrativeDescriptionTemplate.html</id>
+        <sp_widget display_value="DemoHub App Guided Step1">59950c83db9824507c47be6139961924</sp_widget>
+        <sys_class_name>sp_ng_template</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-11-29 15:43:32</sys_created_on>
+        <sys_id>d313bd5ddbbc64d00db2d602ca961950</sys_id>
+        <sys_mod_count>8</sys_mod_count>
+        <sys_name>narrativeDescriptionTemplate.html</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_ng_template_d313bd5ddbbc64d00db2d602ca961950</sys_update_name>
+        <sys_updated_by>luis.chavarria</sys_updated_by>
+        <sys_updated_on>2022-01-14 20:40:16</sys_updated_on>
+        <template><![CDATA[<div class="content">
+  <div class="info-container">
+    <ul class="list-group">
+      <li ng-if="::c.narrBrief.gsf_version != ''" 
+          ng-repeat="item in c.info"
+          ng-hide="item.label === 'Demo' || 
+                   item.label === 'Prep' ||
+                   item.label === 'Install' ||
+                   item.label === 'Type' ||
+                   item.label === 'Gsf Version' ||
+                   item.label === 'Gsf Version Url'"
+          ng-show="::item.data"
+          class="list-group-item">
+        <label>
+          {{ ::item.label }}
+        </label>
+        {{ ::item.data }}
+      </li>
+      <li ng-if="::c.narrBrief.gsf_version == ''"
+          ng-repeat="item in c.info"
+          ng-hide="item.label === 'Demo' || 
+                   item.label === 'Prep' ||
+                   item.label === 'Install' "
+          ng-show="::item.data"
+          class="list-group-item">
+        <label>
+          {{ ::item.label }}
+        </label>
+        {{ ::item.data }}
+      </li>
+    </ul>
+    <ul class="list-group">
+      <li ng-repeat="item in c.info"
+          ng-if="item.label === 'Demo' || 
+                 item.label === 'Prep' ||
+                 item.label === 'Install' "
+          class="glyphicon glyphicon-time"
+          ng-show="::item.data"
+          class="list-group-item">
+        <label>
+          <span class="glyphicon glyphicon-time"
+                uib-tooltip="Estimated {{ item.label }} Time">
+          </span>
+          {{ ::item.label }}
+        </label>
+        ~{{ ::item.data }}
+      </li>
+    </ul>                    
+  </div>
+  <div id="description" 
+       ng-bind-html="::c.narrBrief.description"></div>
+</div>
+<div class="clearfix"></div>]]></template>
+    </sp_ng_template>
+</record_update>

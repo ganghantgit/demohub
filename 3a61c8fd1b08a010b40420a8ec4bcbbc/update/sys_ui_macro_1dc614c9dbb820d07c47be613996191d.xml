@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_macro">
+    <sys_ui_macro action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <category>general</category>
+        <description/>
+        <media_type/>
+        <name>personaTemplate</name>
+        <scoped_name>x_snc_dh_app_home_personaTemplate</scoped_name>
+        <sys_class_name>sys_ui_macro</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-11-28 14:24:55</sys_created_on>
+        <sys_id>1dc614c9dbb820d07c47be613996191d</sys_id>
+        <sys_mod_count>99</sys_mod_count>
+        <sys_name>personaTemplate</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sys_ui_macro_1dc614c9dbb820d07c47be613996191d</sys_update_name>
+        <sys_updated_by>luis.chavarria</sys_updated_by>
+        <sys_updated_on>2022-09-28 16:42:50</sys_updated_on>
+        <xml><![CDATA[<div class="table-responsive">	
+	<table class="table personas" 
+		   ng-if="!isLoading">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Description</th>
+				<th>User ID</th>
+				<th>Password</th>
+				<th>PFC</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="item in personas" ng-if="item.name !=''">  
+				<td class="col-xs-3">
+					<i ng-class="bookmark[item.sys_id].isLoading ? 
+								 'fa fa-circle-o-notch fa-spin' :
+								 ( bookmark[item.sys_id].isBookmarked || item.fav ) ? 'icon-tack' 
+								 :'icon-add-circle-empty'"
+					   ng-click="!item.fav &amp;&amp; addPersonaBookmark(item.user_sys_id, item.name, item.sys_id)"
+					   aria-hidden="true"></i>	
+					<a ng-href="/nav_to.do?uri=x_snc_demo_persona_personal_management.do?sys_id= {{ item.sys_id }}"
+					   target="_blank">{{ ::item.name }}
+						<i class="fa fa-external-link" aria-hidden="true">
+						</i>
+					</a>              
+				</td>
+				<td class="col-xs-2">
+					<span uib-tooltip="{{ item.description }}">
+						{{ ::item.description | limitTo: 45 }}
+						{{ ::item.description.length > 45 ? '...' : '' }}
+					</span>
+				</td>
+				<td class="col-xs-5" ng-if="item.user_id ==''">
+					<span>User ID and Password will be available after Step 2 is completed</span>
+				</td>
+				<td ng-if="item.user_id ==''"></td>
+				<td class="col-xs-2" ng-if="item.user_id !=''">
+					{{ ::item.user_id }} 
+				</td>
+				<td class="col-xs-3" ng-if="item.user_id !=''">
+					<span ng-show="!isEditing[item.sys_id]">
+						{{ item.password }} <span ng-click="toggleEdit(item.sys_id)">
+						<span ng-if="!item.password.length" 
+							  class="create-new-password">Create password</span>
+						<i class="fa fa-pencil" 
+						   aria-hidden="true"></i>
+						</span>
+					</span>
+					<span ng-show="isEditing[item.sys_id]">
+						<form>
+							<div class="row">
+								<div class="col-xs-12">
+									<div class="input-group input-group-sm">
+										<input type="text"
+											   ng-readonly="password[item.sys_id].isLoading"
+											   class="form-control"
+											   ng-class="{ 'read-only': password[item.sys_id].isLoading }"
+											   ng-model="item.password"></input>
+										<div class="input-group-btn">
+											<button type="submit"
+													ng-disabled="password[item.sys_id].isLoading"
+													ng-click="updatePersonaPassword(item)"
+													class="btn btn-default btn-dhapp-primary">
+												<i class="fa"
+												   ng-class="password[item.sys_id].isLoading ? 'fa-circle-o-notch fa-spin' : 'fa-check' "></i>
+											</button>
+											<button type="submit"
+													ng-click="toggleEdit(item.sys_id)"
+													class="btn btn-default btn-dhapp-primary">
+												<i class="fa fa-times"></i>
+											</button>
+										</div>
+									</div>
+								</div>
+							</div>                 
+						</form>
+					</span>
+				</td>
+				<td class="col-xs-2">
+					<a ng-if="item.card_url !=''"  ng-href="{{ item.card_url }}" target="_blank">
+						{{ ::item.occupation_name }}<i class="fa fa-external-link"></i>
+					</a>
+				</td>
+			</tr>
+			<tr ng-repeat="item in personas" ng-if="item.name ==''">
+				<td>Persona will be visible after Step 2 is completed</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td> 
+			</tr>
+		</tbody>
+	</table>
+	<div ng-if="isLoading">
+		<!-- loading spinner -->
+		<i class="fa fa-circle-o-notch fa-spin"></i>
+	</div>	
+</div>
+]]></xml>
+    </sys_ui_macro>
+</record_update>

@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function($rootScope, spEventPubSub) {
+	/* widget controller */
+	var c = this;
+	var defaultOptions = {};
+	defaultOptions.checkBox = defaultOptions.checkBox || {};
+	defaultOptions.dropBox = defaultOptions.dropBox || {};
+
+	c.$onInit = function() {
+		defaultOptions.dropBox = angular.copy(c.data.narr_dropdown);
+		defaultOptions.checkBox = angular.copy(c.data.narr_fields);
+
+		c.workflow = angular.copy(c.data.narr_workflow);
+		c.advSearch.dropDown = setAdvSearchOption(angular.copy(c.data.narr_dropdown));
+		c.advSearch.checkBox = setAdvSearchOption(angular.copy(c.data.narr_fields)); 
+		console.log(c.advSearch)
+	};
+
+	c.isSearchOpen = false;
+	c.isAdvSearchOpen = false;
+	c.hasScrolled = false;
+	c.queryFormOpen = false;
+	c.isAdvOptionLoading = false;
+	c.selected = c.selected || {};
+	c.advSearch = c.advSearch || {};
+
+	c.toggleCategory = toggleCategory;
+	c.isAdvSearchOpen = true;
+	c.toggleAdvSearch = toggleAdvSearch;
+	c.onSelectWorkflow = onSelectWorkflow;
+	c.toggleSearch = toggleSearch;
+	c.onSearchNarrative = onSearchNarrative;
+
+	function setAdvSearchOption(dropDown) {
+		result = {};
+		for (var prop in dropDown) {
+			result[_.camelCase(prop)] = dropDown[prop].filter(function(item) {
+				return item;
+			});
+		}
+
+		return result;
+	}
+
+	function toggleSearch() {
+		c.isAdvSearchOpen = true;
+		var selected = angular.copy(c.selected);
+		c.isSearchOpen = !c.isSearchOpen;
+		//c.selected = setInitialSelectedState(selected);
+		c.advSearch.checkBox = setAdvSearchOption(defaultOptions.checkBox); 
+	}
+
+	function onSearchNarrative() {
+		var data = {};
+
+		if (_.isEmpty(c.selected) || _.isNull(c.selected)) {
+			return;
+
+		} else {
+			data.event = 'search';
+		  data.query = c.selected.keyword;  
+			data.workflow = c.selected.workflow ? c.selected.workflow.slice(0, -9) : '';
+			data.demoDuration = c.selected.demoDuration;
+			data.lastUpdated = c.selected.lastUpdated;
+			data.briefed = c.selected.briefed;
+			data.installed = c.selected.installed;
+			data.gsfVersion = c.selected.gsfVersion;
+			data.businessUnit = setSelectedProp(angular.copy(c.selected.businessUnit), c.advSearch.checkBox.businessUnit);
+			data.gsfProductPortfolio = setSelectedProp(angular.copy(c.selected.gsfProductPortfolio), c.advSearch.checkBox.gsfProductPortfolio);
+			data.skillLevel = setSelectedProp(angular.copy(c.selected.skillLevel), c.advSearch.checkBox.skillLevel);
+			data.industry = setSelectedProp(angular.copy(c.selected.industry), c.advSearch.checkBox.industry);
+			data.platformFeaturesAvailable = setSelectedProp(angular.copy(c.selected.platformFeaturesAvailable), c.advSearch.checkBox.platformFeaturesAvailable);
+		
+			spEventPubSub.notifyEventChange(data);
+			
+			triggeredKeywordSearchNotify(data);
+		}
+	}
+
+	function setSelectedProp(selected, category) {
+		var result = [];
+
+		for (var prop in selected) {
+			if (selected[prop] === true) {
+				result.push(category[prop]);
+			}
+		}
+
+		return result;
+	}
+
+	function onSelectWorkflow(workflow) {
+		var selected = angular.copy(c.selected);
+
+		if (_.isNull(workflow) || _.isEmpty(workflow)) {
+			c.advSearch.checkBox = setAdvSearchOption(defaultOptions.checkBox); 
+			c.selected = setInitialSelectedState(selected);
+
+			return;
+		} else {
+			c.isAdvOptionLoading = true;
+
+			c.server.get({
+				action: 'workflowDependencies',
+				field: 'workflow',
+				value: workflow.slice(0, -9)
+			}).then(function success(response) {
+				c.isAdvOptionLoading = false;
+				var dependentOptions = angular.copy(response.data.dependent_option);
+				c.advSearch.checkBox = setAdvSearchOption(dependentOptions);
+
+			}, function error(response) {
+				spUtil.addErrorMessage('Failed to add fetch dependant query fields.');
+			});
+		}
+		c.selected = setInitialSelectedState(selected, workflow);
+	}
+
+	function setInitialSelectedState(selected, workflow) {
+		var result = {};
+
+		for (var prop in selected) {
+			if (prop === 'workflow') {
+				result[prop] = workflow;
+			} else if (prop === 'demoDuration') {
+				result[prop] = selected[prop];
+			} else if (prop === 'lastUpdated') {
+				result[prop] = selected[prop];
+			} else if (prop === 'briefed') {
+				result[prop] = selected[prop];
+			} else if(prop === 'installed'){
+				result[prop] = selected[prop];			
+			} else if(prop === 'gsfVersion'){
+				result[prop] = selected[prop];			
+			}else {
+				result[prop] = '';
+			}
+		}
+
+		return result;
+	}
+
+	function toggleAdvSearch() {
+		c.isAdvSearchOpen = !c.isAdvSearchOpen;
+	}
+
+	function toggleCategory(category, index) {
+		c.selected[category][index].checked = !c.selected[category][index].checked;
+		c.onSearchNarrative();
+		
+	}
+
+	function triggeredKeywordSearchNotify(state) {
+		$rootScope.$broadcast('triggeredKeywordSearch', state);
+	}
+
+	$rootScope.$on('hasScrolled', function(event, state) {
+		c.hasScrolled = state;
+	});
+
+	$rootScope.$on('toggleFindProcess', function(event, state) {
+		c.queryFormOpen = state;
+	});
+
+	$rootScope.$on('triggerFindSearch', function(event, state) {
+		c.isSearchOpen = false;
+	});
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.search {
+  margin: unset;
+  padding: unset;
+}
+
+.search .toggle-search {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.search .toggle-search &gt; span {
+  @include font-light;
+  border-bottom: 1px solid $color-brand-dark;
+  padding-bottom: 0.125rem;
+}
+
+.search .toggle-search &gt; span.active {
+  border-bottom: unset;
+}
+
+.search .toggle-search &gt; span.inactive {
+  border-bottom: 1px solid $color-brand-dark;
+}
+
+.search .search-box {
+  margin-bottom: 1rem;
+}
+
+.search.homepage-view {
+  margin: inherit;
+  margin-top: 2%;
+}
+
+.search.result-view {
+  margin-top: 3.5rem;
+}
+
+.btn-dhapp-primary {
+	@include button-dhapp-primary;
+  padding: unset;
+  width: unset;
+}
+
+// fade transition effect
+.search .fade-element.ng-enter {
+  transition: 0.3s linear all;
+  opacity: 0;
+}
+
+.search .fade-element.ng-enter.ng-enter-active {
+  opacity: 1;
+}
+
+// boostrap override
+.form-control {
+  border-radius: unset;
+}
+
+button.btn.btn-default {
+	border-radius: unset;
+}
+
+input[type="text"], select {
+  @include font-light;
+	outline: none !important;
+	box-shadow: none !important;
+	border:1px solid $color-brand-dark !important;
+}
+
+// with select bu drop down
+.search select.form-control.category {
+	width: 20%;
+  display: inline;
+  background: $color-brand-dark;
+  color: white;
+}
+
+.search input.form-control.keyword-search {
+	width: 80%;
+  display: inline;
+}
+
+
+
+
+// adv keyword search options
+.advanced-option-toggle {
+  @include font-light;
+	margin-top: 0.5rem;
+}
+
+.advanced-option .checkbox.container .fa.fa-circle-o-notch.fa-spin {
+  margin-left: 0.15rem;
+	color: $color-brand-suplementary-gray;
+}
+
+.advanced-option {
+  margin-top: 1rem;
+}
+
+.advanced-option h5 {
+ @include font-bold;
+}
+
+.advanced-option .checkbox.container {
+  border-bottom: 1px solid $color-brand-dark;
+  padding-bottom: 1rem;
+}
+
+.advanced-option .checkbox.container &gt; div {
+  @include font-light;
+  height: 12rem;
+  overflow: auto;
+}
+
+.advanced-option .checkbox.container &gt; div:last-of-type {
+  @include font-light;
+  max-height: 12rem;
+  overflow: auto;
+}
+
+
+.advanced-option .checkbox.container .icon-arrow-down {
+	float: right;
+  color: lightgrey;
+}
+
+.advanced-option .checkbox.container &gt; div:nth-child(even) {
+	border-left: 1px solid $color-brand-dark;
+  border-right: 1px solid  $color-brand-dark;  
+}
+
+.advanced-option .checkbox.container &gt; div:last-of-type {
+  border-right: unset;
+}
+
+.checkbox input[type="checkbox"], 
+.checkbox-inline input[type="checkbox"] {
+	margin-left: unset;
+}
+
+// adv search options dropdowns
+.advanced-option .dropdown.container {
+  @include font-light;
+	display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.advanced-option .dropdown.container button {
+  font-size: $font-size-sm;
+	background: white;
+  border: 1px solid  $color-brand-dark;
+  border-radius: 25px;
+  padding: 0.15rem 0.75rem;
+	margin-right: 0.25rem;
+}
+
+.advanced-option .dropdown.container button &gt; span:first-of-type {
+  @include font-bold;
+}
+
+.advanced-option .dropdown.container button &gt; span.caret {
+  margin-left: 0.25rem;
+}
+
+.advanced-option .dropdown.container div:last-of-type button {
+  margin-right: unset;
+}
+
+.open &gt; .dropdown-menu {
+	padding: 0.5rem;
+  font-size: $font-size-sm;
+}
+
+/* bootstrap override */
+.tooltip-inner {
+  max-width: 250px;
+  /* If max-width does not work, try using width instead */
+  width: 250px;
+}
+
+
+@media (max-width: 800px) {
+   .advanced-option .dropdown.container{
+        display: block;
+      	padding: 0;
+    }
+  	
+  .advanced-option .dropdown.container button{
+  	margin-bottom: 2%;
+  } 
+  	
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>demohub_app_find_keyword</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+
+}]]></link>
+        <name>DemoHub App Find Keyword</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+	/* populate the 'data' object*/
+	/* e.g., data.table = $sp.getValue('table'); */
+
+	var narrFindUtil = new DHAppNarrativeUtil();
+	var lastUpdated = ['Any', 'Past Week', 'Past Month'];
+	var demoDuration = ['Any', '< 10 Minutes', '>= 10 Minutes'];
+	var briefed = ['Any', 'Yes', 'No'];
+	var installed = ['Any','Yes','No'];
+	var gsfVersion = ['Any','1.07']; // gsfVersion var overwritten on page load
+
+
+	if (!input) {
+		var narrWorkflowField = ['workflow']; // drop down fields for find query
+		var narrFields = ['skill_level', 'business_unit', 'gsf_product_portfolio','industry', 'demo_duration','platform_features_available', 'gsf_version'];
+		var narrWorkflow = narrFindUtil.getNarrFindOptions(narrWorkflowField);
+
+		data.narr_fields = narrFindUtil.getNarrFindOptions(narrFields);
+		
+		// If GSF Versions found in Options search, rewrite default gsfVersion options array
+		if(data.narr_fields.hasOwnProperty('gsf_version')) {
+			gsfVersion = addDefaultOption(data.narr_fields.gsf_version, 'Any');
+		}
+		
+		data.narr_dropdown = setNarrDropDown(lastUpdated, demoDuration, briefed,installed, gsfVersion);
+		data.narr_workflow = narrWorkflow['workflow'].map(function(item) {
+			return item + ' workflow';
+		});
+	}
+
+	if (input && input.action === 'workflowDependencies') {
+		var dependentOption = new x_snc_demohub_app.find().narrativeDependencies(input.field, input.value);
+		data.dependent_option = dependentOption;
+	}
+
+	function setNarrDropDown(lastUpdated, demoDuration, briefed,installed,gsfVersion) {
+		return {
+			lastUpdated: lastUpdated,
+			demoDuration: demoDuration,
+			briefed: briefed,
+			installed: installed,
+			gsfVersion: gsfVersion
+		};
+	}
+
+	function addDefaultOption(arr, option) {
+		if (Array.isArray(arr) && arr.indexOf(option) < 0) {
+			arr.unshift(option);
+		}
+		return arr;
+	}
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>ansoo.chang</sys_created_by>
+        <sys_created_on>2020-11-21 17:59:15</sys_created_on>
+        <sys_id>ae85c9badb28a4907c47be6139961940</sys_id>
+        <sys_mod_count>396</sys_mod_count>
+        <sys_name>DemoHub App Find Keyword</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_widget_ae85c9badb28a4907c47be6139961940</sys_update_name>
+        <sys_updated_by>natalia.marrufo</sys_updated_by>
+        <sys_updated_on>2022-10-05 17:44:23</sys_updated_on>
+        <template><![CDATA[<section id="search"
+         class="search"
+         ng-if="!c.queryFormOpen"
+         ng-class="!c.hasScrolled ? 'homepage-view' : 'result-view' ">
+  
+  <div class="toggle-search"
+       ng-click="c.toggleSearch()">
+    <span ng-class="!c.isSearchOpen ? 'inactive' : 'active' ">Search
+      <i class="fa"
+       	 ng-class="!c.isSearchOpen ? 'fa-search' : 'fa-times-circle-o' "></i>
+    </span>
+  </div>
+ 
+  <div ng-if="c.isSearchOpen"
+       class="search-box fade-element">
+    <form class="form"
+          name="searchForm"
+          role="search" 
+          ng-submit="c.onSearchNarrative()">
+      <!-- to use typeahead reset typeahead-min-length -->
+      <div class="row">
+        <div class="col-xs-12">
+          <div class="input-group input-group-sm">
+            
+            <!-- start business unit select -->
+            <select id="businessUnit"
+                    class="form-control category" 
+                    ng-model="c.selected.workflow"
+                    ng-change="c.onSelectWorkflow(c.selected.workflow)"
+                    ng-options="option as option for option in c.workflow">
+               <option value="">All</option>
+            </select><!-- end -->             
+            
+            <input type="text"
+                   class="form-control keyword-search"
+                   ng-model="c.selected.keyword" 
+                   placeholder="Search narrative" 
+                   uib-typeahead="narr for narr in c.fetchTypeAhead($viewValue)" 
+                   typeahead-loading="c.isLoadingTypeAhead"
+                   typeahead-no-results="noResults"
+                   typeahead-min-length="10000000000"
+                   typeahead-wait-ms="1"
+                   typeahead-on-select="c.selectedNarr($item, $model, $label, $event)">
+
+            <div class="input-group-btn">
+              <button type="submit" 
+                      class="btn btn-default btn-dhapp-primary">
+                <i class="fa fa-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="advanced-option-toggle"><!-- start adv search option -->    
+        <p class="text-right"
+           ng-click="c.toggleAdvSearch()">
+          Advanced Search
+          <icon ng-class="!c.isAdvSearchOpen ? 'icon-essentials' : 'fa fa-times-circle-o' "></icon>
+        </p>    
+      </div>
+      <ng-include src="'advSearchTemplate.html'"></ng-include>
+    </form>
+  </div>
+</section>
+]]></template>
+    </sp_widget>
+</record_update>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="m2m_sp_widget_dependency">
+    <m2m_sp_widget_dependency action="INSERT_OR_UPDATE">
+        <sp_dependency display_value="dhapp-step-timeline.css">20113d311b40e010b40420a8ec4bcb13</sp_dependency>
+        <sp_widget display_value="DemoHub App Find Results">a89298751b88a010b40420a8ec4bcb92</sp_widget>
+        <sys_class_name>m2m_sp_widget_dependency</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-10-24 22:05:04</sys_created_on>
+        <sys_id>4a41fd311b40e010b40420a8ec4bcbbb</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>dhapp-step-timeline.DemoHub App Find Results</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>m2m_sp_widget_dependency_4a41fd311b40e010b40420a8ec4bcbbb</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-10-24 22:05:04</sys_updated_on>
+    </m2m_sp_widget_dependency>
+</record_update>

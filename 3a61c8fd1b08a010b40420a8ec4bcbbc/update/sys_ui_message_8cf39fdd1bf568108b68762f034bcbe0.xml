@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_message">
+    <sys_ui_message action="INSERT_OR_UPDATE">
+        <application>Virtual Agent</application>
+        <code/>
+        <commented_message/>
+        <key>Do you have something Installing?
+
+- Run a DemoHub Sync
+- Change all the items in an Executing state to Queued.
+- Check the Progress Workers table. Change the state of long running (several hours) records to complete. 
+- Try all the previous steps in a di</key>
+        <language>en</language>
+        <message>Do you have something Installing?
+
+- Run a DemoHub Sync
+- Change all the items in an Executing state to Queued.
+- Check the Progress Workers table. Change the state of long running (several hours) records to complete. 
+- Try all the previous steps in a different browser.
+- Have an SC closer to the region where the instance is located try the same steps in that instance. 
+- If installation takes longer than 24 hrs. and the install queue number stays in the same number **submit a** [**case to HI** ](https://support.servicenow.com/hisp?id=cssp_irp)with the instance details and STR If the HI team does something to the instance, **make a new post to community** *so others can reference that Case when opening their own cases.* [DemoHub Community](https://sc.service-now.com/community?id=community_forum&amp;sys_id=92998102db6c0010eb357aa31f961926)
+- If the HI team identifies a configuration issue with the instance, create a new post in this community with the proper tag and HI Case Number. This will route the issue to the team that makes the content.</message>
+        <sys_class_name>sys_ui_message</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2021-01-18 15:49:01</sys_created_on>
+        <sys_id>8cf39fdd1bf568108b68762f034bcbe0</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>Do you have something Installing?
+
+- Run a DemoHub Sync
+- Change all the items in an Executing state to Queued.
+- Check the Progress Workers table. Change the state of long running (several hours) records to complete. 
+- Try all the previous steps in a di</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sys_ui_message_8cf39fdd1bf568108b68762f034bcbe0</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-01-18 15:49:01</sys_updated_on>
+    </sys_ui_message>
+</record_update>

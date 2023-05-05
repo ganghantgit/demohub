@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_ng_template">
+    <sp_ng_template action="INSERT_OR_UPDATE">
+        <id>stepGuideTemplate.html</id>
+        <sp_widget display_value="DemoHub App Find Results">a89298751b88a010b40420a8ec4bcb92</sp_widget>
+        <sys_class_name>sp_ng_template</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-10-24 15:17:15</sys_created_on>
+        <sys_id>68e31cb51b88a010b40420a8ec4bcb10</sys_id>
+        <sys_mod_count>129</sys_mod_count>
+        <sys_name>stepGuideTemplate.html</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_ng_template_68e31cb51b88a010b40420a8ec4bcb10</sys_update_name>
+        <sys_updated_by>ansoo.chang</sys_updated_by>
+        <sys_updated_on>2020-12-04 15:58:04</sys_updated_on>
+        <template><![CDATA[<!-- step guide template -->
+<div>
+  <div class="main-dhapp-timeline">
+    
+    <!-- STEP 1: narrative brief -->
+    <div class="dhapp-timeline"
+         ng-class="c.narrativeActionInfo[item.sys_id].step1.complete ? 'completed-step' : 'active-step' ">
+      <div class="step-content step01">
+        <div>
+          Step 1
+        </div>
+        <div class="step-outer"></div><!-- design image -->
+        <div>&#8595;</div>
+      </div>
+      <!-- check -->
+      <div class="check">
+        <i class="fa"
+           ng-class="c.narrativeActionInfo[item.sys_id].isLoading ? 'fa-circle-o-notch fa-spin' :
+                     (c.narrativeActionInfo[item.sys_id].step1.complete && !c.narrativeActionInfo[item.sys_id].isLoading) ? 'fa-check' : 'fa-exclamation animate__animated animate__headShake'"></i>   
+      </div>
+      
+      <div class="dhapp-timeline-content">               
+        <div class="step-flex-container">
+          <h5 class="title">Narrative Brief
+          	<span ng-if="::c.narrativeActionInfo[item.sys_id].step1.additional_instructions"
+                  class="fa fa-wrench"
+                  id="narrativeBrief"
+                  data-step="step1"
+                  data-tab="manualSteps"
+                  ng-click="c.openModal(item, 'lg', $event)" 
+                  aria-hidden="true"
+                  uib-tooltip="This step requires manual setup and installation"></span>
+          	<span ng-if="::c.narrativeActionInfo[item.sys_id].step1.personas"
+                  class="fa fa-users"
+                  id="narrativeBrief"
+                  data-step="step1"
+                  data-tab="personas"
+                  aria-hidden="true"
+                  uib-tooltip="Choose your persona"
+                  ng-click="c.openModal(item, 'lg', $event)"></span>
+          </h5>
+          <button class="btn-dhapp-primary"
+                  id="narrativeBrief"
+                  data-step="step1"
+                  ng-click="c.openModal(item, 'lg', $event)">
+            {{ c.narrativeActionInfo[item.sys_id].step1.complete ? 'Completed' : 'Start' }}
+          </button>              
+        </div>
+          <p class="description">
+            <span class="bold">The steps during a demo to show an outcome or solution.</span> 
+            Open to download the attachments, review any manual setup steps, and watch the overview video.
+          </p>
+      </div>
+    </div>
+    <!-- end -->
+
+    <!-- STEP 2: start instance config -->
+    <div class="dhapp-timeline"
+         ng-class="c.narrativeActionInfo[item.sys_id].step1.complete &&
+                   !c.narrativeActionInfo[item.sys_id].step2.complete ? 'active-step' :
+                   (c.narrativeActionInfo[item.sys_id].step2.complete ? 'completed-step' : 'inactive-step') ">
+      <div class="step-content step02">
+        <div>
+          Step 2
+        </div>
+        <div class="step-outer"></div><!-- design image -->
+        <div>&#8595;</div>
+      </div>
+			<!-- check -->
+      <div class="check">
+        <i class="fa" 
+           ng-class="c.narrativeActionInfo[item.sys_id].isLoading ? 'fa-circle-o-notch fa-spin' :
+                     (!c.narrativeActionInfo[item.sys_id].step2.complete &&
+                      !c.narrativeActionInfo[item.sys_id].isLoading && 
+                       c.narrativeActionInfo[item.sys_id].step2.state === 'Pending') ? 'fa-ellipsis-h' :
+                     (c.narrativeActionInfo[item.sys_id].step2.complete && !c.narrativeActionInfo[item.sys_id].isLoading) ? 'fa-check' : 'fa-exclamation animate__animated animate__headShake'"></i>      
+      </div>      
+      
+      <div class="dhapp-timeline-content">
+        <div class="step-flex-container">              
+          <h5 class="title">Instance Configuration
+          	<span ng-if="::c.narrativeActionInfo[item.sys_id].step2.additional_instructions"
+                  class="fa fa-wrench"
+                  id="instanceConfiguration"
+                  data-step="step2"
+                  data-tab="manualSteps"
+                  ng-click="c.openModal(item, 'lg', $event)" 
+                  aria-hidden="true"
+                  uib-tooltip="This step requires manual setup and installation"></span>          
+          </h5>
+          <button class="btn-dhapp-primary"
+                  id="instanceConfiguration"
+                  data-step="step2"
+                  ng-click="c.openModal(item, 'lg', $event)">
+            {{ c.narrativeActionInfo[item.sys_id].step2.complete ? 'Completed' : 'Start' }}
+          </button>
+        </div>
+        <p class="description">
+          <span class="bold">Apply the missing Configurations for this Narrative.</span> 
+          This step will install the needed Plugins, Store Applications, Update Sets, .XMLs, and Scripts. 
+          <i><sup>*</sup>New patches will not auto install and will just return this step to incomplete</i>.
+        </p>
+      </div>
+    </div>
+    <!-- end -->
+
+    <!-- STEP 3: start tailor the scenarios -->
+    <div class="dhapp-timeline"
+         ng-class="c.narrativeActionInfo[item.sys_id].step1.complete &&
+                   c.narrativeActionInfo[item.sys_id].step2.complete &&
+                   !c.narrativeActionInfo[item.sys_id].step3.complete ? 'active-step' :
+                   (c.narrativeActionInfo[item.sys_id].step3.complete ? 'completed-step' : 'inactive-step') ">
+      <div class="step-content step03">
+          <div>
+            Step 3
+          </div>        
+        <div class="step-outer"></div><!-- design image -->
+        <div>&#8595;</div>
+      </div>
+			<!-- check -->
+      <div class="check">
+        <i class="fa" 
+           ng-class="c.narrativeActionInfo[item.sys_id].isLoading ? 'fa-circle-o-notch fa-spin' :
+                     (!c.narrativeActionInfo[item.sys_id].step3.complete && 
+                      !c.narrativeActionInfo[item.sys_id].isLoading && 
+                       c.narrativeActionInfo[item.sys_id].step3.state === 'Pending') ? 'fa-ellipsis-h' :
+                     (c.narrativeActionInfo[item.sys_id].step3.complete && !c.narrativeActionInfo[item.sys_id].isLoading) ? 'fa-check' : 'fa-exclamation animate__animated animate__headShake'"></i> 
+      </div>       
+      
+      <div class="dhapp-timeline-content">
+        <div class="step-flex-container">
+          <h5 class="title">Tailor the Scenarios
+          <span ng-if="::c.narrativeActionInfo[item.sys_id].step3.additional_instructions"
+                class="fa fa-wrench"
+                id="tailorTheScenario"
+                data-step="step3"
+                data-tab="manualSteps"
+                ng-click="c.openModal(item, 'lg', $event)" 
+                aria-hidden="true"
+                uib-tooltip="This step requires manual setup and installation"></span>          
+          
+          </h5>
+          <button class="btn-dhapp-primary",
+                  id="tailorTheScenario"
+                  data-step="step3"
+                  ng-click="c.openModal(item, 'lg', $event)">
+            {{ c.narrativeActionInfo[item.sys_id].step3.complete ? 'Completed' : 'Start' }}
+          </button>              
+        </div>            
+        <p class="description">
+          <span class="bold">Tailor the default scenarios to match customer needs.</span> 
+          Quickly update common demo variables.
+        </p>             
+      </div>
+    </div>
+    <!-- end -->
+
+    <!-- STEP 4: start load the demo -->
+    <div class="dhapp-timeline"
+         ng-class="c.narrativeActionInfo[item.sys_id].step1.complete &&
+                   c.narrativeActionInfo[item.sys_id].step2.complete &&
+                   c.narrativeActionInfo[item.sys_id].step3.complete &&
+                   !c.narrativeActionInfo[item.sys_id].step4.complete ? 'active-step' :
+                   (c.narrativeActionInfo[item.sys_id].step4.complete ? 'completed-step' : 'inactive-step') ">
+      <div class="step-content step04">
+          <div>
+            Step 4
+          </div>        
+        <div class="step-outer"></div><!-- design image -->
+      </div>
+ 			<!-- check -->
+      <div class="check">
+        <i class="fa" 
+           ng-class="c.narrativeActionInfo[item.sys_id].isLoading ? 'fa-circle-o-notch fa-spin' :
+                     (!c.narrativeActionInfo[item.sys_id].step4.complete && 
+                      !c.narrativeActionInfo[item.sys_id].isLoading && 
+                       c.narrativeActionInfo[item.sys_id].step4.state === 'Pending') ? 'fa-ellipsis-h' :
+                     (c.narrativeActionInfo[item.sys_id].step4.complete && !c.narrativeActionInfo[item.sys_id].isLoading) ? 'fa-check' : 'fa-exclamation animate__animated animate__headShake'"></i> 
+      </div> 
+      
+      <div class="dhapp-timeline-content">
+        <div class="step-flex-container">
+          <h5 class="title">Load the Demo
+          <span ng-if="::c.narrativeActionInfo[item.sys_id].step4.additional_instructions"
+                class="fa fa-wrench"
+                id="loadTheDemo"
+                data-step="step4"
+                data-tab="manualSteps"
+                ng-click="c.openModal(item, 'lg', $event)" 
+                aria-hidden="true"
+                uib-tooltip="This step requires manual setup and installation"></span>              
+            
+          <span class="fa fa-users"
+                ng-if="::c.narrativeActionInfo[item.sys_id].step4.personas"
+                id="loadTheDemo"
+                data-step="step4"
+                data-tab="personas"
+                aria-hidden="true"
+                uib-tooltip="Choose your persona"
+                ng-click="c.openModal(item, 'lg', $event)"></span>
+          </h5>
+          <button class="btn-dhapp-primary"
+                  id="loadTheDemo"
+                  data-step="step4"
+                  ng-click="c.openModal(item, 'lg', $event)">
+            {{ c.narrativeActionInfo[item.sys_id].step4.complete ? 'Completed' : 'Start' }}
+          </button>
+        </div>
+        <p class="description">
+          <span class="bold">Load data the day of the demo.</span> 
+          Run to reset and refresh demo data before every demo.
+        </p>
+      </div>
+    </div>
+    <!-- end -->
+  </div>
+</div>]]></template>
+    </sp_ng_template>
+</record_update>

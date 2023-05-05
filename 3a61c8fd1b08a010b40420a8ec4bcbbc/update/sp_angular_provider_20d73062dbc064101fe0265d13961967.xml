@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_angular_provider">
+    <sp_angular_provider action="INSERT_OR_UPDATE">
+        <name>spInfiniteScrollBatchService</name>
+        <script><![CDATA[function($http, $q) {
+    var service = {};
+    var baseUrl = "/api/x_snc_demohub_app/getnarratives?";
+
+    function makeUrl(data, paramConfig) {
+        return baseUrl + makeParams(data, paramConfig);
+    }
+
+    function makeParams(data, paramConfig) {
+
+        var queryStr = makeQueryStr(data, paramConfig);
+        var startIndex = paramConfig.startIndex;
+        var pageSize = paramConfig.pageSize;
+        var installed = data.installed && data.installed !== 'Any' ? data.installed : '';
+        if (data.persona == undefined) {
+            data.persona = "any"
+        }
+        var params = [
+            'sysparm_offset=' + (startIndex * pageSize),
+            'sysparm_limit=' + pageSize,
+            'sysparm_query=' + queryStr,
+            'sysparm_persona=' + data.persona,
+            'sysparm_display_value=' + true,
+            'installed=' + installed
+
+        ].join('&');
+
+        return params;
+    }
+
+    function makeQueryStr(data, paramConfig) {
+        var orderBy = orderByQuery("ORDERBYDESC", paramConfig);
+        var queryStr = "";
+        var and = "^";
+
+        if (paramConfig.searchType === 'search') { //keyword search					
+            var selected = {}
+            selected.workflowQuery = data.workflow.length ? "workflow=" + data.workflow + and : '';
+            selected.lastUpdatedQuery = data.lastUpdated && data.lastUpdated !== 'Any' ? setLastUpdatedQuery(data.lastUpdated) + and : '';
+            selected.gsfVersion = data.gsfVersion && data.gsfVersion !== 'Any' ? "gsf_version=" + data.gsfVersion + and : '';
+            selected.demoDurationQuery = data.demoDuration && data.demoDuration !== 'Any' ? setDemoDurationQuery(data.demoDuration) + and : '';
+            selected.briefedQuery = data.briefed && data.briefed !== 'Any' ? setBriefedQuery(data.briefed) + and : '';
+            selected.businessUnitQuery = data.businessUnit.length ? "business_unitIN" + data.businessUnit.join() + and : '';
+            selected.gsfProductPortfolioQuery = data.gsfProductPortfolio.length ? getProductPortfolioQuery(data.gsfProductPortfolio) + and : '';
+			selected.platFeaturesquery = data.platformFeaturesAvailable.length ? getPlatformFeaturesAvailable(data.platformFeaturesAvailable) + and : '';
+            selected.skillLevelQuery = data.skillLevel.length ? "skill_levelIN" + data.skillLevel.join() + and : '';
+            selected.industryQuery = data.industry.length ? getIndustryQuery("industry", data.industry) + and : '';
+
+            if (hasQuery(selected)) {
+                queryStr = constructQuery(selected, data.query, orderBy, and);
+            } else if (data.query == "" || data.query == undefined) {
+                queryStr = orderBy;
+            } else {
+                queryStr = "123TEXTQUERY321=" + data.query + and + orderBy;
+            }
+
+
+        } else { // find process search
+            var businessUnit = fieldQuery(data, 'businessUnit', 'business_unit', 'any');
+            var workflow = fieldQuery(data, 'workflow', 'workflow', 'any');
+            var industry = fieldQuery(data, 'industry', 'industry', 'any');
+            var skillLevel = fieldQuery(data, 'skillLevel', 'skill_level', 'any');
+            var category = fieldQuery(data, 'gsf_category', 'gsf_category', 'any');
+            var imperative = fieldQuery(data, 'gsf_imperative', 'gsf_imperative', 'any');
+            var capability = fieldQuery(data, 'gsf_capability', 'gsf_capability', 'any');
+            queryStr = businessUnit + and + workflow + and + industry + and + skillLevel + and + category + and + imperative + and + capability + and + orderBy;
+        }
+
+        return queryStr;
+    }
+
+    function hasQuery(selected) {
+        for (var prop in selected) {
+            if (selected[prop]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function constructQuery(selected, keyword, orderBy, and) {
+        var queryStr = '';
+
+        for (var prop in selected) {
+            queryStr += selected[prop];
+        }
+        if (keyword == "" || keyword == undefined) {
+            return queryStr + orderBy
+        }
+        return queryStr + "123TEXTQUERY321=" + keyword + and + orderBy;
+    }
+
+    function setBriefedQuery(briefed) {
+        var result = '';
+
+        if (briefed === 'Yes') {
+            result = 'briefed=true'
+        } else if (briefed === 'No') {
+            result = 'briefed=false'
+        }
+
+        return result;
+    }
+
+    function setDemoDurationQuery(demoDuration) {
+        var result = '';
+
+        if (demoDuration[0] === '>') {
+            result = "demo_duration>=javascript:gs.getDurationDate('0 0:10:0')";
+        } else if (demoDuration[0] === '<') {
+            result = "demo_duration<javascript:gs.getDurationDate('0 0:10:0')";
+        }
+
+        return result;
+    }
+
+    function setLastUpdatedQuery(lastUpdated) {
+        var result = '';
+
+        if (lastUpdated.toLowerCase() === 'past month') {
+            result = "sys_updated_onONLast 30 days@javascript:gs.beginningOfLast30Days()@javascript:gs.endOfLast30Days()";
+        } else if (lastUpdated.toLowerCase() === 'past week') {
+            result = "sys_updated_onONLast 7 days@javascript:gs.beginningOfLast7Days()@javascript:gs.endOfLast7Days()";
+        }
+
+        return result;
+    }
+
+    function fieldQuery(data, prop, field, str) {
+        if (data[prop] === str) {
+            return field + "ANYTHING";
+        } else if (data[prop] == "No") {
+            return field + "ISEMPTY";
+        } else {
+            return field + "LIKE" + data[prop];
+        }
+    }
+
+    function orderByQuery(orderBy, paramConfig) {
+        var orderByField = paramConfig.orderBy;
+        return orderBy + orderByField;
+    }
+
+    function getProductPortfolioQuery(portfolios) {
+        var query = "";
+        var or = "^OR"
+        var result = "";
+
+        if (portfolios.length > 0) {
+            portfolios.forEach(function(portfolio) {
+                query += "gsf_product_portfolioLIKE" + portfolio + or;
+            });
+
+            result = query.substring(0, query.lastIndexOf('^OR'));
+        }
+
+        return result;
+    }
+	function getPlatformFeaturesAvailable(platfeat) {
+        var query = "";
+        var or = "^OR"
+        var result = "";
+
+        if (platfeat.length > 0) {
+            platfeat.forEach(function(portfolio) {
+                query += "platform_features_availableLIKE" + portfolio + or;
+            });
+
+            result = query.substring(0, query.lastIndexOf('^OR'));
+        }
+
+        return result;
+    }
+
+    function getIndustryQuery(field, values) {
+        var queryStr = "";
+        var temp_values = values.slice();
+        var index = temp_values.indexOf("No");
+
+        if (index != -1) {
+            temp_values.splice(index, 1);
+            queryStr += field + "ISEMPTY"
+
+            if (temp_values.length > 0)
+                queryStr += "^OR"
+        }
+
+        if (temp_values.length > 0)
+            queryStr += field + "IN" + temp_values.join();
+        return queryStr;
+    }
+
+    service.getNewBatch = function(data, paramConfig) {
+        var deferred = $q.defer();
+        var finalUrl = makeUrl(data, paramConfig);
+
+        $http.get(finalUrl).success(function(response) {
+            deferred.resolve(response);
+        }).error(function(reason) {
+            deferred.reject(reason);
+        })
+
+        return deferred.promise;
+    }
+
+    return service;
+}]]></script>
+        <sys_class_name>sp_angular_provider</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-10-27 01:49:52</sys_created_on>
+        <sys_id>20d73062dbc064101fe0265d13961967</sys_id>
+        <sys_mod_count>161</sys_mod_count>
+        <sys_name>spInfiniteScrollBatchService</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_angular_provider_20d73062dbc064101fe0265d13961967</sys_update_name>
+        <sys_updated_by>enrique.castro</sys_updated_by>
+        <sys_updated_on>2022-09-14 20:06:35</sys_updated_on>
+        <type>factory</type>
+    </sp_angular_provider>
+</record_update>

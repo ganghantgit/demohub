@@ -1,0 +1,956 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function(spEventPubSub, spModal, spInfiniteScrollBatchService, $location, spUtil, $scope, $timeout, $rootScope) {
+    /* widget controller */
+    var c = this;
+	$scope.submitFeedback = function(narrative_record, size ,event) {
+	//var title = "Rate " + item.title + " Narrative";
+	var title = "Narrative Rating";
+	var message = "Rated: " + narrative_record.rating + '\n' + "Selected Rating: " + narrative_record.rating;
+	var narrTitle = '<a class="narrative-title" href="/nav_to.do?uri=x_snc_demohub_app_narrative.do?sys_id=' + narrative_record.sys_id + '" target="_blank">' + narrative_record.title + ' <i class="fa fa-external-link"></i></a>';
+	narrative_record.rating_value = narrative_record.rating;
+	narrative_record.submitted = false;
+	narrative_record.updated = false;
+
+		var buttons = [];
+		var closeBtn = {
+			label: '\u2715 ${Close}',
+			id: 0
+		};
+
+		//buttons.push(closeBtn);
+		
+	var x = spModal.open({
+            title: title,
+            backdrop: 'static',
+            keyboard: false,
+            message: narrTitle,
+						shared: narrative_record,
+            size: 'lg',
+						widget: "demohub_narrative_rating_modal",
+						buttons: buttons
+        }).then(function(response) {
+
+						if(narrative_record.submitted == true || narrative_record.updated == true){
+							narrative_record.rating_sent = false;
+							narrative_record.rating = narrative_record.rating_value;
+						}else if(narrative_record.submitted == false && narrative_record.updated == false && narrative_record.rating_sent == true){
+							narrative_record.rating = 0;
+						}else{
+							
+							narrative_record.rating = narrative_record.rating_value;
+						}
+        }, function() {
+
+						if(narrative_record.submitted == true || narrative_record.updated == true){
+							narrative_record.rating_sent = false;
+							narrative_record.rating = narrative_record.rating_value;
+						}else if(narrative_record.submitted == false && narrative_record.updated == false && narrative_record.rating_sent == true){
+							narrative_record.rating = 0;
+						}else{
+							
+							narrative_record.rating = narrative_record.rating_value;
+						}
+            
+        });
+	}
+
+    c.$onInit = function() {
+        var locSearch = $location.search();
+        c.isBookmarkView = showBookmarkView(locSearch);
+        c.currentItem = c.currentItem || {};
+        c.narrativeResults = c.narrativeResults || [];
+			
+    };
+
+    c.isLoading = false;
+    c.isFetchComplete = false;
+    c.hasNoResults = false;
+    c.isBookmarkView = c.isBookmarkView || false;
+
+    c.toggleDetail = toggleDetail;
+    c.getNewBatch = getNewBatch;
+    c.setDateTime = setDateTime;
+    c.openModal = openModal;
+    c.addToFav = addToFav;
+    c.showDetail = c.showDetail || {};
+    c.narrativeActionInfo = c.narrativeActionInfo || {};
+    c.favNarr = c.favNarr || {};
+
+    var paramConfig = {}; // setting for inifinite scroll batch service
+    paramConfig.startIndex = 0;
+    paramConfig.pageSize = 20;
+    paramConfig.orderBy = 'sys_updated_on';
+
+    function toggleDetail(sysId) {
+        c.showDetail[sysId] = !c.showDetail[sysId];
+
+        if (c.showDetail[sysId]) {
+            // Start Virtual Agent Implementation
+            c.currentNarrative = sysId;
+            var obj = findObjectByKey(c.narrativeResults, 'sys_id', sysId);
+            $rootScope.$broadcast('intoNarrativeConfig', {
+                "narrative_sys_id": obj.sys_id,
+                "narrative_name": obj.title,
+                "action": "populate"
+            });
+            // End Virtual Agent Implementation
+            getNarrativeActionInfo(sysId);
+        }
+        // Start Virtual Agent Implementation
+        if (c.currentNarrative == sysId && !c.showDetail[sysId]) {
+            $rootScope.$broadcast('intoNarrativeConfig', {
+                "action": "clean"
+            });
+        }
+			//console.log("c.narrativeResults toggle detail");
+			//console.log(c.narrativeResults);
+        // End Virtual Agent Implementation
+    }
+
+    function setDateTime(date) {
+        return new Date(date);
+    }
+
+    function getNewBatch(data) {
+        c.isLoading = true;
+        c.hasNoResults = false;
+        paramConfig.searchType = data.event;
+
+        spInfiniteScrollBatchService.getNewBatch(data, paramConfig).then(function(response) {
+            c.isLoading = false;
+            c.isFetchComplete = false;
+            paramConfig.startIndex++;
+		
+            if (!response.result.length) {
+                c.isFetchComplete = true;
+                c.hasNoResults = c.narrativeResults.length ? false : true;
+                return;
+            } else {
+							
+                var results = addFavProp(angular.copy(response.result), c.data.fav_bookmark);
+                c.narrativeResults = c.narrativeResults.concat(results);
+                var all_ids = [];
+                for (var i = 0; i < c.narrativeResults.length; i++) {
+                    all_ids.push(c.narrativeResults[i].sys_id);
+                }
+                c.server.get({
+                    action: 'getConfigurations',
+                    narrative: all_ids
+                }).then(function(response) {
+                    data.config = response.data.config;
+                    for (var i = 0; i < c.narrativeResults.length; i++) {
+                        c.narrativeResults[i].totalConfigs = data.config[c.narrativeResults[i].sys_id].totalConfigs;
+                        c.narrativeResults[i].installedConfigs = data.config[c.narrativeResults[i].sys_id].installedConfigs;
+                        c.narrativeResults[i].lastLoader = data.config['loaders-' + c.narrativeResults[i].sys_id];
+                    }
+                });
+            }
+        });
+    }
+
+    function getNarrativeActionInfo(sysId) {
+        c.narrativeActionInfo[sysId] = {};
+        c.narrativeActionInfo[sysId].isLoading = true;
+
+        c.server.get({
+            action: 'narrativeActionInfo',
+            sys_id: sysId
+        }).then(function(response) {
+            c.narrativeActionInfo[sysId] = angular.copy(response.data.narrative_action);
+            c.narrativeActionInfo[sysId].isLoading = false;
+        });
+    }
+
+    function resetQuery() {
+        paramConfig.startIndex = 0;
+
+        c.isLoading = false;
+        c.hasNoResults = false;
+        c.isFetchComplete = true;
+        c.narrativeResults = [];
+        c.showDetail = {};
+    }
+
+    function openModal(record, size, event) {
+			
+        var stepInfo = {};
+        var step = event.target.dataset.step;
+        var activeTab = event.currentTarget.dataset;
+        var stepTitle = event.target.id;
+			  var type = record.type;
+        var starIcon = record.type == 'Capability' && step == "step1"? '<i class="fa fa-trophy tip"><span>Business Capability Narrative</span></i>&nbsp;' : '';
+        var externalLinkIcon = ' <i class="fa fa-external-link"></i></a>';
+        var narrTitle =  starIcon + '<a class="narrative-title" href="/nav_to.do?uri=x_snc_demohub_app_narrative.do?sys_id=' + record.sys_id + '" target="_blank">' + record.title + externalLinkIcon;
+
+        record.stepTitle = _.startCase(stepTitle);
+        stepInfo[step] = c.narrativeActionInfo[record.sys_id][step];
+
+        var modalRecord = angular.extend(record, stepInfo, event);    
+				record.type = type;
+			
+        var x = spModal.open({
+            title: record.stepTitle,
+            backdrop: 'static',
+            keyboard: false,
+            message: narrTitle,
+            size: size,
+            shared: modalRecord,
+            widget: setModalWidget(step),
+            buttons: setModalBtn(record, step)
+        }).then(function(response) {
+            syncUI(response, record, stepTitle);
+        }, function() {
+            getNarrativeActionInfo(record.sys_id);
+        });
+    }
+
+    function syncUI(response, record, stepTitle) {
+        if (response.id === 1) {
+            if (response.stage === 'step1') {
+                setBriefedState(record.sys_id);
+            }
+        } else if (response.id === 0) {
+            getNarrativeActionInfo(record.sys_id);
+        } else {
+            return;
+        }
+    }
+
+    function setModalWidget(step) {
+        return 'demohub_app_guided_' + step;
+    }
+
+    function setModalBtn(record, step) {
+        var result = [];
+        var closeBtn = {
+            label: '\u2715 ${Close}',
+            stage: step,
+            id: 0
+        };
+        var completedBtn = {
+            label: '\u2713 ${Completed}',
+            primary: false,
+            stage: step,
+            id: 1
+        };
+
+        if (record.hasOwnProperty(step) && step === 'step1') {
+            if (record[step].complete === true) {
+                result.push(closeBtn);
+            } else {
+                result.push(completedBtn, closeBtn);
+            }
+        } else {
+            result.push(closeBtn);
+        }
+
+        return result;
+    }
+
+    function setBriefedState(sysId) {
+        c.server.get({
+            action: 'narrativeBriefed',
+            sys_id: sysId
+        }).then(function(response) {
+            c.narrativeActionInfo[sysId].step1.complete = true;
+        });
+    }
+
+    function addToFav(sysId, title) {
+        c.favNarr[sysId] = {};
+        c.favNarr[sysId].isLoading = true;
+
+        c.server.get({
+            action: 'saveFav',
+            sys_id: sysId,
+            title: title
+        }).then(function success(response) {
+            var res = response.data.bookmark;
+            res.id = response.data.bookmark.sys_id;
+            CustomEvent.fireAll('magellanNavigator:favoriteSaved', res);
+
+            c.favNarr[sysId].isLoading = false;
+            c.favNarr[sysId].url = angular.copy(response.data.fav_narrative_url);
+            c.data.fav_bookmark.push(sysId);
+
+            var selected = _.find(c.narrativeResults, function(item) {
+                return item.sys_id === sysId;
+            });
+
+            selected.fav = true;
+            spUtil.addInfoMessage(title + ' has been successfully added to the bookmark list.');
+
+        }, function error(response) {
+            spUtil.addErrorMessage('Failed to add ' + title + ' to bookmark list.');
+        });
+    }
+
+    function getFavNarr(sysId) {
+        c.isLoading = true;
+        c.server.get({
+            action: 'getFavNarr',
+            sys_id: sysId
+        }).then(function(response) {
+            c.isLoading = false;
+
+            var results = addFavProp(angular.copy(response.data.fav_narrative), c.data.fav_bookmark);
+            c.narrativeResults = results;
+        });
+    }
+
+    function addFavProp(objects, arr) {
+        objects.forEach(function(obj) {
+            if (arr.indexOf(obj.sys_id) != -1) {
+                obj.fav = true;
+            } else {
+                obj.fav = false;
+            }
+        });
+
+        return objects;
+    }
+
+    function showBookmarkView(locSearch) {
+        if (_.has(locSearch, 'sys_id')) {
+            if (locSearch.sys_id) {
+                getFavNarr(locSearch.sys_id);
+
+                $timeout(function() {
+                    c.toggleDetail(locSearch.sys_id);
+                    triggeredBookmarkViewNotify();
+                }, 500);
+
+                return true;
+            }
+
+        } else {
+            return false;
+        }
+    }
+
+    function triggeredBookmarkViewNotify() {
+        $rootScope.$broadcast('triggeredBookmarkView');
+    }
+
+    spEventPubSub.onEventChange(function($event, data) {
+        resetQuery();
+        if (data.event === 'find' || data.event === 'search') {
+            c.currentItem = data;
+            getNewBatch(data);
+
+        }
+        return;
+    });
+
+    // Start Virtual Agent Implementation
+    function findObjectByKey(array, key, value) {
+        for (var i = 0; i < array.length; i++) {
+            if (array[i][key] === value) {
+                return array[i];
+            }
+        }
+        return null;
+    }
+    // End Virtual Agent Implementation
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>ul {
+  margin: unset;
+  padding: unset;
+}
+
+label {
+  margin: unset;
+  color: $color-brand-suplementary-gray;
+  margin-right: 0.25rem;
+}
+
+label::after {
+  content: ":";
+}
+
+.find-result &gt; .list-container {
+  @include font-light;
+  border-radius: 5px;
+  border: 1px solid $color-brand-suplementary-gray;
+  margin: 0.5rem auto;
+  padding: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  background: white;
+}
+
+.find-result &gt; .list-container:hover {
+  border: 1px solid darken($color-brand-suplementary-gray, 30%);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  transition: all 0.1s cubic-bezier(.25,.8,.25,1);
+  transform: translateY(-0.25%);
+}
+
+.find-result &gt; .list-container.selected-border {
+  border: 1px solid $color-brand-dark;
+  margin: 3rem 0;
+}
+
+.find-result &gt; .list-container.selected-border:first-of-type {
+  margin-top: unset;
+  margin-top: 0.875rem;
+}
+
+.find-result &gt; .list-container.selected-border.enter-effect {
+  transition: all 0.8s ease-in-out;
+}
+
+.find-result &gt; .list-container .list-item {
+  display: flex;
+}
+
+.find-result &gt; .list-container .list-item.half {
+  @include font-regular;
+  width: 50%;
+  text-align: left;
+  align-items: start;
+  /*padding-right: 2rem;*/
+  display: flex;
+  flex-direction: column;
+}
+
+.find-result &gt; .list-container .list-item.half div:last-of-type {
+  @include font-light;
+  color: darken($color-brand-suplementary-gray, 15%);
+  margin-top: 1rem;
+  font-size: $font-size-sm;
+}
+
+.find-result &gt; .list-container .list-item.half &gt; .selected-text {
+  @include font-bold;
+  font-size: $font-size-lg;
+}
+
+.find-result &gt; .list-container .list-item.half &gt; .narrative-title {
+  @include font-bold;
+  font-size: $font-size-base;
+}
+
+.summary-text{
+	font-size: $font-size-sm;
+  font-style: italic;
+  white-space: pre-line;
+}
+
+.find-result &gt; .list-container .list-item.split-half {
+  flex: 1;
+}
+
+.find-result &gt; .list-container .list-item.split-half .duration {
+  margin-bottom: 0.5rem;
+}
+
+.find-result &gt; .list-container .list-item.split-half ul li {
+  font-size: $font-size-sm;
+  margin: 0.125rem 0;
+}
+
+.find-result &gt; .list-container .list-item.split-half ul li &gt; span {
+ // border: 1px solid $color-brand-suplementary-gray;
+  padding: 0.15rem 0.5rem;
+  border-radius: 25px;
+}
+
+.find-result &gt; .list-container .list-item.split-half ul li &gt; span.tag-highlight {
+	background: lighten($color-suplementary-light-gray, 5%);
+}
+
+.find-result &gt; .list-container .list-item.split-half .icon-tack {
+	color: $color-brand-suplementary-blue;
+}
+
+.find-result &gt; .list-container &gt; div:nth-child(3) {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;  
+}
+
+// no results
+.no-result-container &gt; p {
+	text-align: center;
+  margin-top: 2rem;
+}
+
+// expanded step details
+.find-result &gt; .list-container .list-detail {
+  padding: unset;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+// filter
+.filter-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+// btn
+.btn-dhapp-primary {
+  @include button-dhapp-primary;
+}
+
+.btn-dhapp-primary.inactive-action-btn {
+	opacity: 0.25;
+}
+
+.find-result &gt; .list-container:hover .btn-dhapp-primary {
+  border: 2px solid $color-brand-dark;  
+}
+
+/* loader */
+.loader-container {
+  margin-top: 2rem;
+	display: flex;
+  justify-content: center;
+}
+
+.loader {
+	@include spinner-dhapp-primary;
+}
+
+/* ng animation effects */
+.find-result .list-container.ng-enter {
+  opacity: 0.2;
+  transition: all ease 250ms;
+}
+.find-result .list-container.ng-enter-stagger {
+  transition-delay: 0.1s;
+  transition-duration: 0s;
+}
+.find-result .list-container.ng-enter.ng-enter-active {
+  opacity: 1.0;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+/* step guide template
+ * updated 11/15/2020
+ * also see dhapp-step-timeline css file
+ * for step guide baseline css
+ */
+
+// buttons 
+.main-dhapp-timeline .dhapp-timeline-content button.btn-dhapp-primary {
+  width: 10rem;
+}
+
+/* text */
+.main-dhapp-timeline .bold {
+  @include font-bold;	
+}
+
+// active step
+.main-dhapp-timeline .dhapp-timeline.active-step .step-outer {
+  height: 175px;
+  width: 175px;
+}
+
+.main-dhapp-timeline .dhapp-timeline.active-step .step-content &gt; div:first-of-type {
+  @include font-bold;
+  color: $color-brand-dark;
+  font-size: 1.25rem;
+}
+
+.main-dhapp-timeline .dhapp-timeline .step-content &gt; div:last-of-type {
+  text-align: center;
+  font-size: 1rem;
+  color: darkgrey;
+}
+
+// icons
+.main-dhapp-timeline .dhapp-timeline .check &gt; i.fa.fa-exclamation {
+  color: $color-brand-suplementary-orange;
+}
+
+.main-dhapp-timeline .dhapp-timeline .check &gt; i.fa.fa-check {
+  color: $color-brand-dark;
+}
+
+.main-dhapp-timeline .dhapp-timeline .check &gt; i.fa.fa-ellipsis-h {
+	color: $color-brand-suplementary-gray;
+}
+
+.main-dhapp-timeline .dhapp-timeline .check &gt; i.fa.fa-circle-o-notch.fa-spin {
+  color: $color-brand-suplementary-gray;
+}
+
+.main-dhapp-timeline .dhapp-timeline .fa.fa-wrench,
+.main-dhapp-timeline .dhapp-timeline .fa.fa-users {
+	color: $color-brand-suplementary-gray;
+}
+
+.main-dhapp-timeline .dhapp-timeline.active-step .dhapp-timeline-content button.btn-dhapp-primary {
+  @include font-bold;
+  background: $color-brand-dark;
+  color: white;
+  opacity: unset;
+}
+
+// completed step
+.main-dhapp-timeline .dhapp-timeline.completed-step .dhapp-timeline-content button.btn-dhapp-primary {
+  opacity: unset;
+}
+
+// favorite btn 
+i.fa.fa-plus-circle {
+	color: $color-brand-dark;
+  font-size: 1.25rem;
+}
+
+.fixed-bottom {
+  bottom: 0;
+  position: absolute;
+}
+
+.position-relative {
+  position: relative;
+}
+
+.gilroy-bold{
+  font-family: 'Gilroy-Bold';
+}
+
+.font-11{
+  font-size: 11px;
+}
+
+.tip h6{
+  display: none;
+}
+
+.tip:hover h6{
+  display:block;
+  background-color: #293e40;
+  padding: 8px 5px 5px 5px;
+  color: #FFF;
+  font-family: "Gilroy-Regular";
+  font-size: 12px;
+  position: absolute;
+  z-index: 100;
+  top: 25px;
+  text-align: center;
+  height:26px;
+  border-radius: 3px;
+}
+
+.rating{
+  float: left;
+  margin-right: 8px;
+  direction: rtl;
+}
+
+.rating i{
+  color: $color-brand-suplementary-gray;
+  transition: 0.3s all;
+}
+
+.rating .star{
+  color: $color-brand-suplementary-orange;
+}
+
+.rating i:hover{
+  color: $color-brand-suplementary-orange;
+}
+
+.rating__star1:hover ~ i{
+  color: $color-brand-suplementary-orange;
+}
+
+.rating__star2:hover ~ i{
+  color: $color-brand-suplementary-orange;
+}
+
+.rating__star3:hover ~ i{
+  color: $color-brand-suplementary-orange;
+}
+
+.rating__star4:hover ~ i{
+  color: $color-brand-suplementary-orange;
+}
+
+.rating__star5:hover ~ i{
+  color: $color-brand-suplementary-orange;
+}
+.fa-star{
+   color: $color-brand-suplementary-orange;
+}
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>demohub_app_find_results</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+    var widgetSection = document.getElementsByTagName('section')[0];
+    var scrollBuffer = 100; // distance from bottom of page in px
+
+    widgetSection.addEventListener('scroll', function(evt) {
+        if (!scope.c.isLoading &&
+            !scope.c.isFetchComplete &&
+            IsWithinBuffer(widgetSection, scrollBuffer)) {
+            scope.c.getNewBatch(scope.c.currentItem);
+        }
+    });
+
+    function IsWithinBuffer(widget, buffer) {
+        return widget.scrollHeight - widget.scrollTop - buffer <= widget.clientHeight;
+    }
+}]]></link>
+        <name>DemoHub App Find Results</name>
+        <option_schema>[{"displayValue":"Widget Dependency","name":"step_guide_template","section":"other","default_value":"stepGuideTemplate.html","label":"Step Guide Template","type":"reference","value":"m2m_sp_widget_dependency","ed":{"reference":"m2m_sp_widget_dependency"}}]</option_schema>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+    /* populate the 'data' object  */
+    /* e.g., data.table = $sp.getValue('table'); */
+
+    var demoHubAppFind = new x_snc_demohub_app.find();
+    var currentUserId = gs.getUserID();
+
+    if (!input) {
+        data.fav_bookmark = new x_snc_dh_app_home.DHAppBookmarkUtil().geFavBookmark(14, currentUserId); // param is slice start index
+    }
+
+
+    if (input && input.action === 'narrativeActionInfo') {
+        data.narrative_action = demoHubAppFind.getActionInfo(input.sys_id);
+
+    } else if (input && input.action === 'narrativeBriefed') {
+        data.narrative_briefed = demoHubAppFind.postNarrativeBriefed(input.sys_id);
+
+    } else if (input && input.action === 'saveFav') {
+        data.bookmark = new global.DemoHubAppGlobalUtils().saveNarrativeBookmark(input.sys_id, input.title);
+
+    } else if (input && input.action === 'getFavNarr') {
+        data.fav_narrative = new x_snc_dh_app_home.DHAppNarrativeUtil().getNarrative(input.sys_id);
+    } else if (input && input.action === 'getConfigurations') {
+        data.config = {};
+        for (var i = 0; i < input.narrative.length; i++) {
+            data.config[input.narrative[i]] = demoHubAppFind.getStep2ModalInfo(input.narrative[i]);
+            data.config['loaders-' + input.narrative[i]] = demoHubAppFind.getLastLoaderRun(input.narrative[i]);
+        }
+        return data.config;
+    }
+data.max_stars = options.stars ? options.stars : 5;
+	data.star_size = options.size ? options.size : "medium";
+		data.allowRating = true;
+	data.allowFeedback = true;
+	data.comments = "test";
+	data.submitMsg = "Submit";
+	data.comments = "";
+	
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-10-24 15:11:16</sys_created_on>
+        <sys_id>a89298751b88a010b40420a8ec4bcb92</sys_id>
+        <sys_mod_count>1563</sys_mod_count>
+        <sys_name>DemoHub App Find Results</sys_name>
+        <sys_package display_value="DemoHub App Home" source="x_snc_dh_app_home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="DemoHub App Home">3a61c8fd1b08a010b40420a8ec4bcbbc</sys_scope>
+        <sys_update_name>sp_widget_a89298751b88a010b40420a8ec4bcb92</sys_update_name>
+        <sys_updated_by>gil.olaes</sys_updated_by>
+        <sys_updated_on>2022-09-29 18:04:03</sys_updated_on>
+        <template><![CDATA[<section class="find-result" ng-animate-children="true" id="findResults" ng-show="c.narrativeResults.length">
+
+    <div class="list-container" ng-class="{ 'selected-border enter-effect': c.showDetail[item.sys_id] }" ng-repeat="item in c.narrativeResults">
+
+        <!-- item description -->
+        <div class="list-item half position-relative">
+            <div ng-class="{ 'selected-text': c.showDetail[item.sys_id], 'narrative-title': !c.showDetail[item.sys_id]}">
+
+                <i class="fa fa-trophy tip" ng-if="item.type == 'Capability'"><h6>Business Capability Narrative</h6></i> {{ ::item.title }}
+
+            </div>
+
+            <div class="summary-text">
+                {{ ::item.summary }}
+            </div>
+            <div ng-if="::item.industry">
+                <label><b>Industry</b></label>
+                <span ng-class="{ 'tag-highlight': c.currentItem.gsf_imperative == item.gsf_imperative }">
+            {{ ::item.industry }}
+          </span>
+            </div>
+            <div class="fixed-bottom">
+                <a ng-href="{{::item.gsf_version_url}}" target="_blank" ng-if="::item.gsf_version">
+                    <span class="gilroy-bold font-11">Based on GSF v{{::item.gsf_version}}</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- item discovery data -->
+        <div class="list-item split-half">
+
+            <ul class="list-unstyled" ng-if="::item.gsf_version">
+                <li ng-if="::item.gsf_category">
+                    <label>Category</label>
+                    <span ng-class="{ 'tag-highlight': c.currentItem.gsf_category == item.gsf_category }">
+            {{ ::item.gsf_category }}
+          </span>
+                </li>
+                <li ng-if="::item.gsf_imperative">
+                    <label>Imperative</label>
+                    <span ng-class="{ 'tag-highlight': c.currentItem.gsf_imperative == item.gsf_imperative }">
+            {{ ::item.gsf_imperative }}
+          </span>
+                </li>
+                <li ng-if="::item.gsf_capability">
+                    <label>Capability</label>
+                    <span ng-class="{ 'tag-highlight': c.currentItem.gsf_capability == item.gsf_capability }">
+            {{ ::item.gsf_capability }}
+          </span>
+                </li>
+                <li ng-if="::item.gsf_product_portfolio">
+                    <label>Product(s)</label>
+                    <span ng-class="{ 'tag-highlight': c.currentItem.gsf_product_portfolio == item.gsf_product_portfolio }">
+            {{ ::item.gsf_product_portfolio }}
+          </span>
+                </li>
+                <li ng-if="::item.skill_level">
+                    <label>Skill Level</label>
+                    <span ng-class="{ 'tag-highlight': c.currentItem.skillLevel == item.skill_level }">
+            {{ ::item.skill_level }}
+          </span>
+                </li>
+                <li ng-if="::item.sys_updated_on">
+                    <label>Updated</label> {{ ::c.setDateTime(item.sys_updated_on) | date: 'mediumDate' }}
+                </li>
+                <li>
+                    <label>Installed Configurations</label>
+                    <span ng-class="">
+            {{ ::item.installedConfigs }} / {{ ::item.totalConfigs }}
+          </span>
+                </li>
+                <li ng-if="::item.lastLoader">
+                    <label>Loader last run</label> {{ ::item.lastLoader }}
+                </li>
+            </ul>
+
+            <ul class="list-unstyled" ng-if="::item.gsf_version == ''">
+                <li ng-if="::item.workflow">
+                    <label>Workflow</label>
+                    <span ng-class="{ 'tag-highlight': c.currentItem.workflow == item.workflow }">
+            {{ ::item.workflow }}
+          </span>
+                </li>
+                <li ng-if="::item.skill_level">
+                    <label>Skill Level</label>
+                    <span ng-class="{ 'tag-highlight': c.currentItem.skillLevel == item.skill_level }">
+            {{ ::item.skill_level }}
+          </span>
+                </li>
+                <li ng-if="::item.business_unit">
+                    <label>Business Unit</label>
+                    <span ng-class="{ 'tag-highlight': c.currentItem.businessUnit == item.business_unit }">
+            {{ ::item.business_unit }}
+          </span>
+                </li>
+                <li ng-if="::item.sys_updated_on">
+                    <label>Updated</label> {{ ::c.setDateTime(item.sys_updated_on) | date: 'mediumDate' }}
+                </li>
+                <li>
+                    <label>Installed Configurations</label>
+                    <span ng-class="">
+            {{ ::item.installedConfigs }} / {{ ::item.totalConfigs }}
+          </span>
+                </li>
+                <li ng-if="::item.lastLoader">
+                    <label>Loader last run</label> {{ ::item.lastLoader }}
+                </li>
+            </ul>
+        </div>
+
+        <!-- item details action -->
+        <div class="list-item split-half" ng-class="{ '': c.showDetail[item.sys_id] }">
+
+            <div>
+              	
+
+                <!-- add to favorite -->
+              <!-- <form ng-submit="submitFeedback()" >-->
+              
+  						<!--<div ng-if="::data.allowRating" class="rating tip">
+   							 <h6>Rate Narrative</h6>
+                 <uib-rating ng-click="submitFeedback()" sp-rating ng-model="data.rating" max="5" aria-labelledby="{{item.sys_id}}" state-on="'fa fa-star kb-star-on'" state-off="'fa fa-star kb-star-off'"></uib-rating>
+              </div>-->
+              <uib-rating ng-model="(item.rating)" max="5" readonly="item.rating!=0"  state-on="'fa fa-star'" state-off="'fa fa-star-o'" aria-labelledby="custom-icons-1" ng-click="submitFeedback(item,'lg',$event)"></uib-rating>
+
+                <i ng-class="c.favNarr[item.sys_id].isLoading ? 'fa fa-circle-o-notch fa-spin' : 
+                    (item.fav) ? 'icon-tack' : 'icon-add-circle-empty'" ng-click="!item.fav && c.addToFav(item.sys_id, item.title)" aria-hidden="true"></i>
+            </div>
+
+            <div class="duration">
+                <ul class="list-unstyled">
+                    <li ng-if="::item.demo_duration">
+                        <label>
+              <span class="glyphicon glyphicon-time"></span>
+              Demo</label>{{ ::item.demo_duration }}
+                    </li>
+                    <li ng-if="::item.estimated_setup_duration">
+                        <label>
+              <span class="glyphicon glyphicon-time"></span>
+              Install</label>{{ ::item.estimated_setup_duration }}
+                    </li>
+                    <li data-toggle="tooltip" title="This requires some manual setup and installation" ng-show="item.step_1_additional_instructions ||
+                                             item.step_2_additional_instructions || 
+                                             item.step_3_additional_instructions || 
+                                             item.step_4_additional_instructions">
+                        <label><i class="fa fa-wrench text-warning tip animate__animated animate__headShake"></i></label> Manual setup
+                    </li>
+                </ul>
+            </div>
+
+            <div>
+
+                <button id="{{ item.sys_id }}" class="btn-dhapp-primary" ng-click="c.toggleDetail(item.sys_id)">
+          {{ c.showDetail[item.sys_id] ? "Close" : "Setup Steps" }}
+          <i class="fa" 
+             ng-class="!c.showDetail[item.sys_id] ? 'fa-caret-down' : 'fa-caret-up'">
+        	</i>
+        </button>
+            </div>
+        </div>
+
+        <!-- step detail -->
+        <div class="list-detail" ng-if="c.showDetail[item.sys_id]">
+            <div>
+                <ng-include ng-if="c.options.step_guide_template" src="c.options.step_guide_template"></ng-include>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+<!-- no results msg -->
+<div ng-show="c.hasNoResults" class="no-result-container">
+    <p>
+        Sorry, there are no results that matches the selection.
+    </p>
+</div>
+
+<!-- loading spinner -->
+<div class="loader-container" ng-if="c.isLoading">
+    <div class="loader"></div>
+</div>]]></template>
+    </sp_widget>
+</record_update>
