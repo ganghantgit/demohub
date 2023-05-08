@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><record_update table="sp_css_include">
     <sp_css_include action="INSERT_OR_UPDATE">
+        <lazy_load>false</lazy_load>
         <name>nl-form.css</name>
         <source>local</source>
         <sp_css display_value="nl-form.css">752908b91b48a010b40420a8ec4bcba0</sp_css>

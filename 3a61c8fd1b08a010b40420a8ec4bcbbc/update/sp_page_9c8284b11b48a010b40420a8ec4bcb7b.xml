@@ -17,6 +17,7 @@ body {
 }</css>
         <draft>false</draft>
         <dynamic_title_structure/>
+        <human_readable_url_structure/>
         <id>demohub_app_home_page</id>
         <internal>false</internal>
         <omit_watcher>false</omit_watcher>

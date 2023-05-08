@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><record_update table="sp_css_include">
     <sp_css_include action="INSERT_OR_UPDATE">
+        <lazy_load>false</lazy_load>
         <name>dhapp-step-timeline.css</name>
         <source>local</source>
         <sp_css display_value="dhapp-step-timeline.css">3ae079311b40e010b40420a8ec4bcb88</sp_css>

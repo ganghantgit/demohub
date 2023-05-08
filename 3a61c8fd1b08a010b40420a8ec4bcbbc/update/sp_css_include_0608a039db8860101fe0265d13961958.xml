@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><record_update table="sp_css_include">
     <sp_css_include action="INSERT_OR_UPDATE">
+        <lazy_load>false</lazy_load>
         <name>gilroy-font64.css</name>
         <source>local</source>
         <sp_css display_value="gilroy-font64.css">f9c7e8f5db8860101fe0265d139619d5</sp_css>

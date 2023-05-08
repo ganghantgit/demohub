@@ -170,5 +170,6 @@ input[type="text"], select {&#13;
         <sys_update_name>sp_theme_15bac43d1b48a010b40420a8ec4bcb87</sys_update_name>
         <sys_updated_by>natalia.marrufo</sys_updated_by>
         <sys_updated_on>2022-08-10 22:39:52</sys_updated_on>
+        <turn_off_scss_compilation>false</turn_off_scss_compilation>
     </sp_theme>
 </record_update>
